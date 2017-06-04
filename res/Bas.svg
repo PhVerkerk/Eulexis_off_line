@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://web.resource.org/cc/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:svg="http://www.w3.org/2000/svg" id="svg5683" viewBox="0 0 57.045 56.589" version="1.0">
+  <defs id="defs3">
+    <linearGradient id="linearGradient5596" y2="387.44" gradientUnits="userSpaceOnUse" x2="332.02" y1="369.98" x1="314.57">
+      <stop id="stop4888" stop-color="#1c97e1" offset="0"/>
+      <stop id="stop4890" stop-color="#006798" offset="1"/>
+    </linearGradient>
+    <linearGradient id="linearGradient6022" x1="467.19" gradientUnits="userSpaceOnUse" x2="487.88" gradientTransform="matrix(0 .80139 1.2478 0 -511.15 -364.35)" y1="592.79" y2="614.64">
+      <stop id="stop4740" stop-color="#fff" stop-opacity=".72656" offset="0"/>
+      <stop id="stop4742" stop-color="#fff" offset="1"/>
+    </linearGradient>
+    <linearGradient id="linearGradient6025" x1="302.74" gradientUnits="userSpaceOnUse" x2="311.27" gradientTransform="matrix(1.9519 0 0 1.8418 -375.12 -700.48)" y1="377.95" y2="390.78">
+      <stop id="stop4556" stop-color="#fff" offset="0"/>
+      <stop id="stop4558" stop-color="#fff" stop-opacity="0" offset="1"/>
+    </linearGradient>
+  </defs>
+  <g id="layer1" transform="translate(-213.36 12.443)">
+    <path id="path5200" style="color:black" transform="matrix(1.8961 0 0 1.8961 -375.12 -700.48)" fill="#166496" d="m339.54 378.06a13.967 13.967 0 1 1 -27.94 0 13.967 13.967 0 1 1 27.94 0z"/>
+    <path id="path5202" style="color:black" d="m339.54 378.06a13.967 13.967 0 1 1 -27.94 0 13.967 13.967 0 1 1 27.94 0z" transform="matrix(1.7312 0 0 1.7312 -321.44 -638.14)" stroke="#fff" stroke-width=".72205" fill="url(#linearGradient5596)"/>
+    <path id="path5204" style="color:black" fill="url(#linearGradient6025)" d="m242.17-7.8219c-13.35 0-24.18 10.828-24.18 24.175 0 6.412 2.62 12.143 6.7 16.472 2.12-17.501 16.89-31.107 34.96-31.107 0.48-0.0003 0.94 0.0987 1.42 0.1182-4.42-5.7507-11.09-9.6581-18.9-9.6581z"/>
+    <path id="path5206" style="color:black" fill="url(#linearGradient6022)" d="m226.39 12.473l4.13-4.1315 11.7 11.7 11.59-11.588 4.16 4.162-15.71 15.719-15.87-15.862z"/>
+  </g>
+  <metadata>
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <cc:license rdf:resource="http://creativecommons.org/licenses/publicdomain/"/>
+        <dc:publisher>
+          <cc:Agent rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title>arrow_button_set</dc:title>
+        <dc:date>2006-12-21T11:14:06</dc:date>
+        <dc:description>Four set of arrow buttons. In green, red, blue and yellow color.</dc:description>
+        <dc:source>http://openclipart.org/detail/2212/arrow_button_set-by-kuba-2212</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>kuba</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>arrow</rdf:li>
+            <rdf:li>blue</rdf:li>
+            <rdf:li>button</rdf:li>
+            <rdf:li>clip art</rdf:li>
+            <rdf:li>clipart</rdf:li>
+            <rdf:li>green</rdf:li>
+            <rdf:li>icon</rdf:li>
+            <rdf:li>image</rdf:li>
+            <rdf:li>media</rdf:li>
+            <rdf:li>png</rdf:li>
+            <rdf:li>public domain</rdf:li>
+            <rdf:li>red</rdf:li>
+            <rdf:li>svg</rdf:li>
+            <rdf:li>yellow</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

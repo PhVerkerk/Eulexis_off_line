@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://web.resource.org/cc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:svg="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns1="http://sozi.baierouge.fr" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg2" viewBox="0 0 720 720" version="1.1" inkscape:version="0.91 r13725">
+  <g id="g2885" transform="matrix(3.5 0 0 3.5 -831.67 -679.25)">
+    <path id="path2861" style="fill:#ff0000" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(0 -.90161 .90161 0 72.801 654.02)"/>
+    <path id="path2863" style="fill:#ff8000" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(.45081 -.78082 .78082 .45081 -69.885 472.34)"/>
+    <path id="path2865" style="fill:#ffff00" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(.78082 -.45081 .45081 .78082 -102.62 243.66)"/>
+    <path id="path2867" style="fill:#80ff00" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(.90161 -2.5145e-16 2.5145e-16 .90161 -16.618 29.25)"/>
+    <path id="path2869" style="fill:#00ff00" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(.78082 .45081 -.45081 .78082 165.06 -113.44)"/>
+    <path id="path2871" style="fill:#00ff80" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(.45081 .78082 -.78082 .45081 393.75 -146.17)"/>
+    <path id="path2873" style="fill:#00ffff" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(3.3766e-16 .90161 -.90161 3.3766e-16 608.16 -60.169)"/>
+    <path id="path2875" style="fill:#0080ff" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(-.45081 .78082 -.78082 -.45081 750.84 121.51)"/>
+    <path id="path2877" style="fill:#0000ff" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(-.78082 .45081 -.45081 -.78082 783.57 350.19)"/>
+    <path id="path2879" style="fill:#8000ff" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(-.90161 5.3302e-16 -5.3302e-16 -.90161 697.58 564.6)"/>
+    <path id="path2881" style="fill:#ff00ff" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(-.78082 -.45081 .45081 -.78082 515.89 707.29)"/>
+    <path id="path2883" style="fill:#ff0080" d="m495.89 296.89a99.821 99.821 0 0 1 -13.38 49.91l-86.448-49.911z" transform="matrix(-.45081 -.78082 .78082 -.45081 287.21 740.02)"/>
+  </g>
+  <metadata>
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <cc:license rdf:resource="http://creativecommons.org/licenses/publicdomain/"/>
+        <dc:publisher>
+          <cc:Agent rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title>12 slice rainbow pizza</dc:title>
+        <dc:date>2011-07-06T17:31:53</dc:date>
+        <dc:description>12 slice rainbow pizza</dc:description>
+        <dc:source>https://openclipart.org/detail/148477/12-slice-rainbow-pizza-by-10binary</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>10binary</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>12</rdf:li>
+            <rdf:li>circle</rdf:li>
+            <rdf:li>pizza</rdf:li>
+            <rdf:li>rainbow</rdf:li>
+            <rdf:li>slice</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>
