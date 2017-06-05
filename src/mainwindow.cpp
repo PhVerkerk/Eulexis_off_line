@@ -652,11 +652,20 @@ void MainWindow::ouvrir()
         }
         if (txt.contains("<--- Eulexis !?./ --->"))
         {
-            // Le fichier a été sauvé par Eulexis pour restaurer une session de travail
-            int i = txt.indexOf("<--- Eulexis !?./ --->");
-            _texte->setText(txt.mid(0,i));
-            txt = txt.mid(i + 23);
-            _lemEdit->setHtml(txt);
+            bool lire = true;
+            // S'il y a des changements, je demande confirmation.
+            if (_changements) lire = alerte(false);
+            // Ici, le bouton par défaut est "Ne pas sauver".
+            if (lire)
+            {
+                // Le fichier a été sauvé par Eulexis pour restaurer une session de travail
+                int i = txt.indexOf("<--- Eulexis !?./ --->");
+                _texte->setText(txt.mid(0,i));
+                txt = txt.mid(i + 23);
+                _lemEdit->setHtml(txt);
+                _changements = false;
+                // Je viens de rétablir un texte déjà sauvé.
+            }
         }
         else _texte->setText(txt);
     }
