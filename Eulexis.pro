@@ -30,7 +30,7 @@ RESOURCES += src/Eulexis.qrc
 
 !macx:
 {
-    RC_ICONS = res/Eulexis.ico
+    RC_ICONS = src/res/Eulexis.ico
     data.path = bin/ressources
     data.files =  Eulexis_data/*
     deploy.depends += install
@@ -41,7 +41,7 @@ RESOURCES += src/Eulexis.qrc
 macx:
 {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
-    ICON = res/Eulexis.icns
+    ICON = src/res/Eulexis.icns
     # install into app bundle
     # à changer en ressources
     data.path = Eulexis.app/Contents/MacOS/ressources
