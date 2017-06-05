@@ -83,6 +83,7 @@ private:
     QAction *fenCons;
     QAction *fenLem;
     QAction *fenTxt;
+    QAction *chxPolice;
 
     QMenuBar *menuBar;
     QMenu *menuFichier;
@@ -140,6 +141,7 @@ private slots:
     void avCons();
     void avLem();
     void avTxt();
+    void choixPolice();
 
 public slots:
     void lemmatiser(QString f = "");

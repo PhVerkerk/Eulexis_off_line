@@ -143,8 +143,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
         // settings.setValue("police", font.family());
         settings.setValue("beta",_beta->isChecked());
         settings.setValue("exact",_exact->isChecked());
-        int pt = _txtEdit->font().pointSize();
-        settings.setValue("zoom", pt);
+//        int pt = _txtEdit->font().pointSize();
+        QFont font = _txtEdit->font();
+        settings.setValue("zoom", font.pointSize());
+        settings.setValue("police", font.family());
         settings.endGroup();
 
         _second->hide();
@@ -198,9 +200,11 @@ void MainWindow::readSettings()
     _beta->setChecked(settings.value("beta",true).toBool());
     _exact->setChecked(settings.value("exact",true).toBool());
     int pt = settings.value("zoom").toInt();
-    _txtEdit->setFontPointSize(pt);
-    _lemEdit->setFontPointSize(pt);
-    _texte->setFontPointSize(pt);
+    QString police = settings.value("police").toString();
+    QFont font = QFont(police,pt);
+    _txtEdit->setFont(font);
+    _lemEdit->setFont(font);
+    _texte->setFont(font);
     settings.endGroup();
 
 }
@@ -254,6 +258,7 @@ void MainWindow::createW()
     lunettes->setChecked(false);
     lemAlpha = new QAction(QIcon(":res/edit-alpha.svg"),tr("lemmatiser le texte"),this);
     lemTxt = new QAction(QIcon(":res/gear.svg"),tr("lemmatiser le texte"),this);
+    chxPolice = new QAction(QIcon(":res/font-noun.png"), tr("Choisir la police"), this);
 
     // Les dicos
     LSJ = new QAction("Le LSJ",this);
@@ -408,6 +413,8 @@ void MainWindow::createW()
     menuDicos->addAction(langFr);
 //    menuDicos->addSeparator();
 //    menuDicos->addAction(balaiAct);
+    menuFenetre->addAction(chxPolice);
+    menuFenetre->addSeparator();
     menuFenetre->addAction(yeux);
     menuFenetre->addAction(lunettes);
     menuFenetre->addSeparator();
@@ -452,6 +459,7 @@ void MainWindow::connecter()
     connect(fenCons, SIGNAL(triggered()), this, SLOT(avCons()));
     connect(fenLem, SIGNAL(triggered()), this, SLOT(avLem()));
     connect(fenTxt, SIGNAL(triggered()), this, SLOT(avTxt()));
+    connect(chxPolice, SIGNAL(triggered()), this, SLOT(choixPolice()));
 
     connect(zoomAct, SIGNAL(triggered()), _txtEdit, SLOT(zoomIn()));
     connect(deZoomAct, SIGNAL(triggered()), _txtEdit, SLOT(zoomOut()));
@@ -1222,4 +1230,17 @@ bool MainWindow::alerte(bool sauv)
     if (attention.clickedButton() == annulerButton) return false;
     else if (attention.clickedButton() == sauverButton) sauver();
     return true;
+}
+
+void MainWindow::choixPolice()
+{
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, _txtEdit->font(), this);
+    if (ok)
+    {
+        // font is set to the font the user selected
+        _texte->setFont(font);
+        _lemEdit->setFont(font);
+        _txtEdit->setFont(font);
+    }
 }
