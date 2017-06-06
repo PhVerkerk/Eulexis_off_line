@@ -992,7 +992,7 @@ void Lemmat::indexCommun()
     qDebug() << tout.size();
     QMultiMap<QByteArray,QString> comIndex;
     // J'ai l'ensemble des clefs en caractères latins
-    foreach (QString clef, tout)
+    foreach (QString clef, tout) if (!clef.isEmpty())
     {
         QString clef_gr = beta2unicode(clef,false);
 //        clef_gr.replace("ϐ","β");
