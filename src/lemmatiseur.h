@@ -13,6 +13,7 @@ class Lemmat
 {
 public:
     Lemmat(QString rep);
+    void lireData();
     QStringList lemmatise(QString f, bool beta = true);
     QString beta2unicode(QString f,bool beta = true);
     QString uni2betacode(QString f);

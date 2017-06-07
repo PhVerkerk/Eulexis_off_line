@@ -35,6 +35,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void loadLemm();
     QString bulle(QString mot);
 
 private:

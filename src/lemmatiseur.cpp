@@ -20,14 +20,24 @@ Lemmat::Lemmat(QString rep)
         }
     }
     fListe.close();
+/*    lireAnalyses();
+    lireTraductions();
+qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
+    lireLSJ();
+    lireBailly();
+    lirePape();*/
+    reLettres = QRegExp("[A-Za-z]");
+    rePonct = QRegExp("([\\.?!;:,\\)\\(])");
+}
+
+void Lemmat::lireData()
+{
     lireAnalyses();
     lireTraductions();
 qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
     lireLSJ();
     lireBailly();
     lirePape();
-    reLettres = QRegExp("[A-Za-z]");
-    rePonct = QRegExp("([\\.?!;:,\\)\\(])");
 }
 
 QStringList Lemmat::lemmatise(QString f,bool beta)

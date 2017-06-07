@@ -104,6 +104,13 @@ MainWindow::~MainWindow()
 
 }
 
+void MainWindow::loadLemm()
+{
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    __lemmatiseur->lireData();
+    QApplication::restoreOverrideCursor();
+}
+
 /**
  * \fn void MainWindow::closeEvent(QCloseEvent *event)
  * \brief Vérifie que le travail est sauvé
