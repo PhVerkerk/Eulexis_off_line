@@ -5,6 +5,8 @@
 #include <QFile>
 #include <QtWidgets>
 #include <QRegExp>
+#include <QPrintDialog>
+#include <QPrinter>
 
 #include "lemmatiseur.h"
 
@@ -52,6 +54,8 @@ private:
 //    QToolButton *_exact;
     QAction *_exact;
 
+    QAction *exportAct;
+    QAction *printAct;
     QAction *quitAct;
     QAction *balaiAct;
     QAction *actionNouveau;
@@ -111,6 +115,8 @@ private:
     bool alerte(bool sauv = true);
 
 private slots:
+    void exportPdf();
+    void imprimer();
     void closeEvent(QCloseEvent *event);
     void effaceRes();
     void nouveau();

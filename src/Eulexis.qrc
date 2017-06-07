@@ -10,6 +10,7 @@
 	<file>res/gear.svg</file>
 	<file>res/poignee.svg</file>
 	<file>res/power.svg</file>
+	<file>res/print.svg</file>
 	<file>res/Haut.svg</file>
 	<file>res/Bas.svg</file>
 	<file>res/Droite.svg</file>
@@ -25,5 +26,6 @@
 	<file>res/occhi-03.svg</file>
 	<file>res/egal.png</file>
 	<file>res/font-noun.png</file>
+	<file>res/buffer-export_pdf2.png</file>
 </qresource>
 </RCC>

@@ -236,6 +236,8 @@ void MainWindow::createW()
     actionOuvrir->setObjectName(QStringLiteral("actionOuvrir"));
     actionSauver = new QAction(QIcon(":/res/document-save.svg"),"Sauver",this);
     actionSauver->setObjectName(QStringLiteral("actionSauver"));
+    exportAct = new QAction(QIcon(":res/buffer-export_pdf2.png"), tr("Exporter en pdf"), this);
+    printAct = new QAction(QIcon(":res/print.svg"), tr("Im&primer"), this);
     actionA_propos = new QAction("À propos",this);
     actionA_propos->setObjectName(QStringLiteral("actionA_propos"));
     quitAct = new QAction(QIcon(":/res/power.svg"), tr("&Quitter"), this);
@@ -298,6 +300,7 @@ void MainWindow::createW()
     actionNouveau->setShortcuts(QKeySequence::New);
     actionOuvrir->setShortcuts(QKeySequence::Open);
     actionSauver->setShortcuts(QKeySequence::Save);
+    printAct->setShortcuts(QKeySequence::Print);
     quitAct->setShortcut(
         QKeySequence(tr("Ctrl+Q")));  // QKeySequence::Quit inopérant
 
@@ -395,6 +398,9 @@ void MainWindow::createW()
     menuFichier->addAction(actionNouveau);
     menuFichier->addAction(actionOuvrir);
     menuFichier->addAction(actionSauver);
+    menuFichier->addSeparator();
+    menuFichier->addAction(exportAct);
+    menuFichier->addAction(printAct);
 /*    menuFichier->addSeparator();
     menuFichier->addAction(yeux);
     menuFichier->addAction(lunettes);
@@ -450,6 +456,8 @@ void MainWindow::connecter()
     connect(actionNouveau, SIGNAL(triggered()), this, SLOT(nouveau()));
     connect(actionOuvrir, SIGNAL(triggered()), this, SLOT(ouvrir()));
     connect(actionSauver, SIGNAL(triggered()), this, SLOT(sauver()));
+    connect(exportAct, SIGNAL(triggered()), this, SLOT(exportPdf()));
+    connect(printAct, SIGNAL(triggered()), this, SLOT(imprimer()));
     connect(actionA_propos, SIGNAL(triggered()), this, SLOT(aPropos()));
     connect(yeux, SIGNAL(triggered()), this, SLOT(montrer()));
     connect(lunettes, SIGNAL(triggered()), this, SLOT(montrer3()));
@@ -1244,3 +1252,52 @@ void MainWindow::choixPolice()
         _txtEdit->setFont(font);
     }
 }
+/**
+ * \fn
+ * \brief
+ *
+ */
+void MainWindow::exportPdf()
+{
+#ifndef QT_NO_PRINTER
+    QString nf =
+        QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
+    if (!nf.isEmpty())
+    {
+        if (QFileInfo(nf).suffix().isEmpty()) nf.append(".pdf");
+        QPrinter printer(QPrinter::HighResolution);
+        printer.setOutputFormat(QPrinter::PdfFormat);
+        printer.setOutputFileName(nf);
+        QTextEdit *tmpTE = new QTextEdit();
+        tmpTE->setHtml(_lemEdit->toHtml());
+//        tmpTE->append(textEditLem->toHtml());
+        tmpTE->document()->print(&printer);
+        delete tmpTE;
+    }
+#endif
+}
+
+/**
+ * \fn void MainWindow::imprimer()
+ * \brief Lance le dialogue d'impression pour la lemmatisation.
+ */
+void MainWindow::imprimer()
+{
+#if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
+    QPrinter printer(QPrinter::HighResolution);
+    QPrintDialog *dlg = new QPrintDialog(&printer, this);
+    if (_lemEdit->textCursor().hasSelection())
+        dlg->addEnabledOption(QAbstractPrintDialog::PrintSelection);
+    dlg->setWindowTitle(tr("Imprimer le texte et le lexique"));
+    if (dlg->exec() == QDialog::Accepted)
+    {
+        QTextEdit *tmpTE = new QTextEdit();
+        tmpTE->setHtml(_lemEdit->toHtml());
+//        tmpTE->append(textEditLem->toHtml());
+        tmpTE->print(&printer);
+        delete tmpTE;
+    }
+    delete dlg;
+#endif
+}
+
