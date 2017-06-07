@@ -95,6 +95,7 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
                 ff = forme.section(",",0,0);
                 lem = e[0].section(",",1);
                 lem.remove(",");
+                forme.replace("σ,","ς,");
                 forme.replace(",",", <a href='http://aller/" + lem + "'>");
             }
             else forme.prepend("<a href='http://aller/" + lem + "'>");
