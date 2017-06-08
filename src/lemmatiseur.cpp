@@ -58,6 +58,13 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
         } */
         f_gr = uni2betacode(f_gr);
         // Je préfère convertir la forme grecque en betacode pour éviter le pb tonos / oxia.
+        // Mark de Wilde m'a signalé que l'accent grave remplace souvent l'accent aigu.
+        // De fait, il n'y a que 18 accents graves dans analyses_gr, tjs sur les lemmes.
+        f_gr.replace("\\","/");
+        // Il peut y avoir un accent d'enclitique : aigu sur la dernière syllabe.
+        if ((f_gr.count('/') == 2) ||
+                ((f_gr.count('/') == 1) && (f_gr.count('=') == 1) && (f_gr.indexOf('/') > f_gr.indexOf('='))))
+            f_gr.remove(f_gr.lastIndexOf('/'),1);
     }
 //    qDebug() << beta << f << f_gr;
     QStringList llem;
