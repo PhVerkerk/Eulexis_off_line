@@ -18,7 +18,6 @@ class EditLatin : public QTextEdit
 
    private:
     MainWindow *mainwindow;
-    int _ident;
 
    protected:
     void mouseReleaseEvent(QMouseEvent *e);
@@ -39,6 +38,8 @@ public:
     QString bulle(QString mot);
 
 private:
+    QStatusBar * _statusB;
+    QLabel * _blabla;
     void createW();
     void readSettings();
     QString _rscrDir;
@@ -89,9 +90,12 @@ private:
     QAction *fenLem;
     QAction *fenTxt;
     QAction *chxPolice;
+    QAction *findAct;
+    QAction *reFindAct;
 
     QMenuBar *menuBar;
     QMenu *menuFichier;
+    QMenu *menuEdition;
     QMenu *menuDicos;
     QMenu *menuFenetre;
     QMenu *menuExtra;
@@ -114,6 +118,7 @@ private:
     QStringList _msg;
     bool _changements;
     bool alerte(bool sauv = true);
+    QString rech;
 
 private slots:
     void exportPdf();
@@ -149,6 +154,8 @@ private slots:
     void avLem();
     void avTxt();
     void choixPolice();
+    void chercher();
+    void rechercher();
 
 public slots:
     void lemmatiser(QString f = "");

@@ -39,8 +39,12 @@ bool EditLatin::event(QEvent *event)
             //  || lm[i+1].startsWith("´")
             if (mot.isEmpty ())
                 return QWidget::event (event);
+            if (mot.endsWith("·") || mot.endsWith("·"))
+                mot.chop(1);
             if (mot.endsWith("´"))
                 mot.replace("´","'");
+            if (mot.endsWith("’"))
+                mot.replace("’","'");
             QString txtBulle = mainwindow->bulle(mot);
             if (!txtBulle.isEmpty())
             {
@@ -77,6 +81,9 @@ void EditLatin::mouseReleaseEvent(QMouseEvent *e)
     QString st = cursor.selectedText();
     if (!st.isEmpty())
     {
+        if (st.endsWith("·") || st.endsWith("·"))
+            st.chop(1);
+        st.replace("’","'");
         st.replace("´","'");
         mainwindow->lemmatiser(st);
     }
@@ -107,7 +114,9 @@ MainWindow::~MainWindow()
 void MainWindow::loadLemm()
 {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    _blabla->setText("Chargement en cours...");
     __lemmatiseur->lireData();
+    _blabla->setText("");
     QApplication::restoreOverrideCursor();
 }
 
@@ -225,6 +234,11 @@ void MainWindow::readSettings()
 void MainWindow::createW()
 {
     resize(768, 532);
+    _statusB = statusBar();
+    _blabla = new QLabel("Démarrage en cours...");
+    _statusB->addPermanentWidget(_blabla);
+    setUnifiedTitleAndToolBarOnMac(true);
+//    blabla.setText("Démarrage en cours");
     _txtEdit = new QTextBrowser(this);
 //    _txtEdit = new QTextEdit(this);
     _txtEdit->setOpenLinks(false);
@@ -266,8 +280,11 @@ void MainWindow::createW()
     lunettes->setCheckable(true);
     lunettes->setChecked(false);
     lemAlpha = new QAction(QIcon(":res/edit-alpha.svg"),tr("lemmatiser le texte"),this);
+    lemAlpha->setToolTip(tr("Lemmatisation alphabétique"));
     lemTxt = new QAction(QIcon(":res/gear.svg"),tr("lemmatiser le texte"),this);
     chxPolice = new QAction(QIcon(":res/font-noun.png"), tr("Choisir la police"), this);
+    findAct = new QAction(QIcon(":res/edit-find.svg"), tr("Chercher"), this);
+    reFindAct = new QAction(QIcon(":res/edit-find.svg"), tr("Chercher encore"), this);
 
     // Les dicos
     LSJ = new QAction("Le LSJ",this);
@@ -304,6 +321,8 @@ void MainWindow::createW()
     // raccourcis
     zoomAct->setShortcut(QKeySequence::ZoomIn);
     deZoomAct->setShortcut(QKeySequence::ZoomOut);
+    findAct->setShortcut(QKeySequence::Find);
+    reFindAct->setShortcut(QKeySequence::FindNext);
     actionNouveau->setShortcuts(QKeySequence::New);
     actionOuvrir->setShortcuts(QKeySequence::Open);
     actionSauver->setShortcuts(QKeySequence::Save);
@@ -355,6 +374,8 @@ void MainWindow::createW()
     menuBar->setGeometry(QRect(0, 0, 768, 22));
     menuFichier = new QMenu("Fichier",menuBar);
     menuFichier->setObjectName(QStringLiteral("menuFichier"));
+    menuEdition = new QMenu("Edition",menuBar);
+    menuEdition->setObjectName(QStringLiteral("menuEdition"));
     menuDicos = new QMenu("Dicos",menuBar);
     menuFenetre = new QMenu("Fenêtres",menuBar);
     menuExtra = new QMenu("Extra",menuBar);
@@ -398,6 +419,7 @@ void MainWindow::createW()
     mainToolBar->addAction(quitAct);
 
     menuBar->addAction(menuFichier->menuAction());
+    menuBar->addAction(menuEdition->menuAction());
     menuBar->addAction(menuDicos->menuAction());
     menuBar->addAction(menuFenetre->menuAction());
     menuBar->addAction(menuExtra->menuAction());
@@ -415,6 +437,17 @@ void MainWindow::createW()
     menuFichier->addAction(balaiAct);*/
     menuFichier->addSeparator();
     menuFichier->addAction(quitAct);
+
+    menuEdition->addAction(findAct);
+    menuEdition->addAction(reFindAct);
+    menuEdition->addSeparator();
+    menuEdition->addAction(zoomAct);
+    menuEdition->addAction(deZoomAct);
+    menuEdition->addSeparator();
+    menuEdition->addAction(chxPolice);
+    menuEdition->addSeparator();
+    menuEdition->addAction(balaiAct);
+
 //    menuDicos->addAction(consAct);
 //    menuDicos->addSeparator();
     menuDicos->addAction(LSJ);
@@ -426,16 +459,13 @@ void MainWindow::createW()
     menuDicos->addAction(langFr);
 //    menuDicos->addSeparator();
 //    menuDicos->addAction(balaiAct);
-    menuFenetre->addAction(chxPolice);
-    menuFenetre->addSeparator();
+
     menuFenetre->addAction(yeux);
     menuFenetre->addAction(lunettes);
     menuFenetre->addSeparator();
     menuFenetre->addAction(fenCons);
     menuFenetre->addAction(fenLem);
     menuFenetre->addAction(fenTxt);
-    menuFenetre->addSeparator();
-    menuFenetre->addAction(balaiAct);
 
     menuExtra->addAction(actAnalyses);
     menuExtra->addAction(actTrad);
@@ -445,9 +475,6 @@ void MainWindow::createW()
     menuExtra->addAction(actBailly);
     menuExtra->addSeparator();
     menuExtra->addAction(actComInd);
-    menuAide->addAction(zoomAct);
-    menuAide->addAction(deZoomAct);
-    menuAide->addSeparator();
     menuAide->addAction(actionA_propos);
 
     setWindowTitle(tr("Eulexis"));
@@ -509,6 +536,9 @@ void MainWindow::connecter()
 
     connect(lemAlpha, SIGNAL(triggered()),this, SLOT(lemmatAlpha()));
     connect(lemTxt, SIGNAL(triggered()),this, SLOT(lemmatTxt()));
+
+    connect(findAct, SIGNAL(triggered()), this, SLOT(chercher()));
+    connect(reFindAct, SIGNAL(triggered()), this, SLOT(rechercher()));
 
 }
 
@@ -1103,7 +1133,12 @@ void MainWindow::montrer3()
 
 void MainWindow::lemmatAlpha()
 {
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     _changements = true;
+    _blabla->setText("Lemmatisation en cours...");
+    _blabla->repaint();
+    _statusB->showMessage("Lemmatisation en cours...");
+    _statusB->repaint();
     if (!_trois->isVisible())
     {
         _trois->show();
@@ -1118,7 +1153,8 @@ void MainWindow::lemmatAlpha()
     for (int i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
-        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´")) mot.append("'");
+        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
+            mot.append("'");
         QString motNu = __lemmatiseur->beta2unicode(__lemmatiseur->nettoie(mot));
         if (!mot.contains(QRegExp("\\d")) && !mots.contains(mot))
             mots.insert(motNu,mot);
@@ -1130,11 +1166,17 @@ void MainWindow::lemmatAlpha()
     {
         lemmatiser(mot);
     }
+    _blabla->setText("");
+    _statusB->clearMessage();
+    repaint();
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::lemmatTxt()
 {
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     _changements = true;
+    _blabla->setText("Lemmatisation en cours...");
     if (!_trois->isVisible())
     {
         _trois->show();
@@ -1147,11 +1189,13 @@ void MainWindow::lemmatTxt()
     for (int i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
-        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´"))
+        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
             lemmatiser(mot);
     }
+    _blabla->setText("");
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::lAlld()
@@ -1308,3 +1352,83 @@ void MainWindow::imprimer()
 #endif
 }
 
+void MainWindow::chercher()
+{
+    bool ok;
+    rech = QInputDialog::getText(this, tr("Recherche"), tr("Chercher :"),
+                                 QLineEdit::Normal, rech, &ok);
+    if (ok && !rech.isEmpty())
+        rechercher();
+/*    {
+        if (!_texte->find(rech))
+        {
+            rech = QInputDialog::getText(this, tr("Chercher"),
+                                         tr("Retour au début ?"),
+                                         QLineEdit::Normal, rech, &ok);
+            if (ok && !rech.isEmpty())
+            {
+                // Retourner au debut
+                _texte->moveCursor(QTextCursor::Start);
+                // Chercher à nouveau
+                _texte->find(rech);
+            }
+        }
+    }*/
+}
+
+void MainWindow::rechercher()
+{
+    if (rech.isEmpty()) return;
+    bool ok;
+    if (_second->isActiveWindow())
+    {
+        if (!_texte->find(rech))
+        {
+            QTextCursor tc = _texte->textCursor();
+            rech = QInputDialog::getText(this, tr("Chercher"),
+                                         tr("Retour au début ?"),
+                                         QLineEdit::Normal, rech, &ok);
+            if (ok && !rech.isEmpty())
+            {
+                // Retourner au debut
+                _texte->moveCursor(QTextCursor::Start);
+                // Chercher à nouveau
+                if (!_texte->find(rech)) _texte->setTextCursor(tc);
+            }
+        }
+    }
+    else if (isActiveWindow())
+    {
+        if (!_txtEdit->find(rech))
+        {
+            QTextCursor tc = _txtEdit->textCursor();
+            rech = QInputDialog::getText(this, tr("Chercher"),
+                                         tr("Retour au début ?"),
+                                         QLineEdit::Normal, rech, &ok);
+            if (ok && !rech.isEmpty())
+            {
+                // Retourner au debut
+                _txtEdit->moveCursor(QTextCursor::Start);
+                // Chercher à nouveau
+                if (!_txtEdit->find(rech)) _txtEdit->setTextCursor(tc);
+            }
+        }
+    }
+    else if (_trois->isActiveWindow())
+    {
+        if (!_lemEdit->find(rech))
+        {
+            QTextCursor tc = _lemEdit->textCursor();
+            rech = QInputDialog::getText(this, tr("Chercher"),
+                                         tr("Retour au début ?"),
+                                         QLineEdit::Normal, rech, &ok);
+            if (ok && !rech.isEmpty())
+            {
+                // Retourner au debut
+                _lemEdit->moveCursor(QTextCursor::Start);
+                // Chercher à nouveau
+                if (!_lemEdit->find(rech)) _lemEdit->setTextCursor(tc);
+            }
+        }
+    }
+}
