@@ -235,10 +235,11 @@ void MainWindow::createW()
 {
     resize(768, 532);
     _statusB = statusBar();
+//    _statusB->showMessage("Démarrage en cours...");
     _blabla = new QLabel("Démarrage en cours...");
     _statusB->addPermanentWidget(_blabla);
     setUnifiedTitleAndToolBarOnMac(true);
-//    blabla.setText("Démarrage en cours");
+
     _txtEdit = new QTextBrowser(this);
 //    _txtEdit = new QTextEdit(this);
     _txtEdit->setOpenLinks(false);
@@ -1135,10 +1136,6 @@ void MainWindow::lemmatAlpha()
 {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     _changements = true;
-    _blabla->setText("Lemmatisation en cours...");
-    _blabla->repaint();
-    _statusB->showMessage("Lemmatisation en cours...");
-    _statusB->repaint();
     if (!_trois->isVisible())
     {
         _trois->show();
@@ -1149,26 +1146,36 @@ void MainWindow::lemmatAlpha()
     _lemEdit->clear();
     QStringList lm = txt.split(QRegExp("\\b"));
 //    QStringList mots;
-    QMap<QString,QString> mots;
+    QMultiMap<QString,QString> mots;
+    // QMultiMap car deux mots différents peuvent avoir la même forme sans décoration.
     for (int i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
         if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
             mot.append("'");
         QString motNu = __lemmatiseur->beta2unicode(__lemmatiseur->nettoie(mot));
-        if (!mot.contains(QRegExp("\\d")) && !mots.contains(mot))
+        if (!mot.contains(QRegExp("\\d")) && !mots.values().contains(mot))
             mots.insert(motNu,mot);
+        // Je vérifie que le mot ne contient pas de chiffre et
+        // qu'il ne figure pas encore dans les valeurs de mots.
 //            mots.append(mot);
     }
 //    mots.sort();
 //    mots.removeDuplicates();
+    int i = 0;
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, mots.values().size()-1, _second);
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
+    _trois->setUpdatesEnabled(false);
     foreach (QString mot, mots.values())
     {
         lemmatiser(mot);
+        progr.setValue(i);
+        i++; // Uniquement pour la barre de progression.
     }
-    _blabla->setText("");
-    _statusB->clearMessage();
-    repaint();
+    _trois->setUpdatesEnabled(true);
+    _trois->repaint();
     QApplication::restoreOverrideCursor();
 }
 
@@ -1176,7 +1183,6 @@ void MainWindow::lemmatTxt()
 {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     _changements = true;
-    _blabla->setText("Lemmatisation en cours...");
     if (!_trois->isVisible())
     {
         _trois->show();
@@ -1186,14 +1192,22 @@ void MainWindow::lemmatTxt()
     if (txt.isEmpty()) return;
     _lemEdit->clear();
     QStringList lm = txt.split(QRegExp("\\b"));
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, lm.size()-1, _second);
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
+    _trois->setUpdatesEnabled(false);
     for (int i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
+        progr.setValue(i);
         if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
             lemmatiser(mot);
     }
+    _trois->setUpdatesEnabled(true);
+    _trois->repaint();
     _blabla->setText("");
     QApplication::restoreOverrideCursor();
 }

@@ -7,6 +7,7 @@
 #include <QRegExp>
 #include <QPrintDialog>
 #include <QPrinter>
+#include <QProgressBar>
 
 #include "lemmatiseur.h"
 
