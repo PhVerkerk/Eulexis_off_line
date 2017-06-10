@@ -1208,7 +1208,7 @@ void MainWindow::lemmatTxt()
     }
     _trois->setUpdatesEnabled(true);
     _trois->repaint();
-    _blabla->setText("");
+//    _blabla->setText("");
     QApplication::restoreOverrideCursor();
 }
 
