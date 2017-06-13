@@ -7,6 +7,7 @@ Lemmat::Lemmat(QString rep)
     QFile fListe (rep + "betunicode_gr.csv");
     fListe.open (QIODevice::ReadOnly|QIODevice::Text);
     QTextStream fluxL (&fListe);
+    fluxL.setCodec("UTF-8");
     QString ligne;
     while (!fluxL.atEnd ())
     {
@@ -182,6 +183,15 @@ void Lemmat::majAnalyses(QString nom)
     // Le fichier d'origine est humainement lisible, pour pouvoir être corrigé.
     // Toutefois, ramener l'analyse morphologique à un nombre doit permettre
     // de réduire la taille du fichier considérablement.
+
+    // Première étape : lire le fichier et compter le nombre
+    // d'occurrences de chaque morpho.
+
+    // Deuxième étape : ranger les morphos en fonction du nb d'occurrences,
+    // les mettre en liste, les numéroter et les écrire dans le fichier.
+
+    // Troisième étape : remplacer la morpho humainement lisible par son numéro
+    // et écrire le fichier de sortie.
 /*    QString nomCourt = nomFichier.section("/",-1);
 
     if (QFile::exists(_rscrDir + "ind_gr_ana.csv"))
@@ -530,9 +540,14 @@ void Lemmat::lireLSJ()
     _LSJname = linea.mid(1).trimmed();
     if (_LSJname.isEmpty()) qDebug() << "Erreur : le nom du LSJ manque";
     else qDebug() << _LSJname;
+    QProgressDialog progr("Chargement du LSJ...", "Arrêter", 0, findex.size());
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
     while (!findex.atEnd ())
     {
         linea = findex.readLine();
+        progr.setValue(findex.pos());
         if (linea.startsWith('!') || linea.isEmpty()) continue;
         if (linea.contains(":"))
         {
@@ -1114,11 +1129,24 @@ void Lemmat::lireAnalyses()
     QFile fListe (_rscrDir + "analyses_gr.txt");
     fListe.open (QIODevice::ReadOnly|QIODevice::Text);
     QTextStream fluxL (&fListe);
+    fluxL.setCodec("UTF-8");
     QString ligne;
     QString clef;
+    QProgressDialog progr("Chargement des données...", "Arrêter", 0, fListe.size()/8192);
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
+    int i=0;
+    int j=0;
     while (!fluxL.atEnd ())
     {
         ligne = fluxL.readLine ();
+        i += ligne.size();
+        if (j != i/8192)
+        {
+            j = i / 8192;
+            progr.setValue(j);
+        }
         clef = ligne.section("\t",0,0);
         clef.remove("(");
         clef.remove(")");
@@ -1141,6 +1169,7 @@ void Lemmat::lireTraductions()
     QFile fListe (_rscrDir + "trad_gr_en_fr_de.csv");
     fListe.open (QIODevice::ReadOnly|QIODevice::Text);
     QTextStream fluxL (&fListe);
+    fluxL.setCodec("UTF-8");
     QString ligne;
     while (!fluxL.atEnd ())
     {
