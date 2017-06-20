@@ -215,8 +215,8 @@ void MainWindow::readSettings()
     settings.beginGroup("options");
     _beta->setChecked(settings.value("beta",true).toBool());
     _exact->setChecked(settings.value("exact",true).toBool());
-    int pt = settings.value("zoom").toInt();
-    QString police = settings.value("police").toString();
+    int pt = settings.value("zoom",12).toInt();
+    QString police = settings.value("police","Times New Roman").toString();
     QFont font = QFont(police,pt);
     _txtEdit->setFont(font);
     _lemEdit->setFont(font);

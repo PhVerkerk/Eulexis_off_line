@@ -1051,14 +1051,30 @@ void Lemmat::indexCommun()
             comIndex.insert(clef_gr.toUtf8(),ligne);
         }
     }
-    QFile fichier (_rscrDir + "index_com.csv");
+    QFile fichier (_rscrDir + "index_com.inc");
+    fichier.open(QFile::WriteOnly | QFile::Text);
+    QString lg = "<?php\n$LSJ_name = \"" + _LSJname;
+    fichier.write(lg.toUtf8());
+    lg = "\";\n$Pape_name = \"" + _PapeName;
+    fichier.write(lg.toUtf8());
+    lg = "\";\n$Bailly_name = \"" + _BaillyName;
+    fichier.write(lg.toUtf8());
+    lg = "\";\n?>\n";
+    fichier.write(lg.toUtf8());
+    fichier.close();
+    // Je crée un fichier index_com.inc qui contient les noms de fichiers.
+    // Il sera utilisé par traitement.php avec un include "data/index_com.inc".
+    // Les deux fichiers index_com.inc et .csv étant créés en même temps,
+    // On saura facilement qui va avec quoi.
+
+    fichier.setFileName(_rscrDir + "index_com.csv");
     fichier.open(QFile::WriteOnly | QFile::Text);
     QByteArray ba;
     foreach (QByteArray cle, comIndex.keys())
         if (cle != ba)
         {
             ba = cle;
-            foreach (QString lg, comIndex.values(cle))
+            foreach (lg, comIndex.values(cle))
                 fichier.write(lg.toUtf8());
         }
 
