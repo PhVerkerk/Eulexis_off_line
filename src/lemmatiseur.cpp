@@ -541,10 +541,10 @@ void Lemmat::lireLSJ()
     if (_LSJname.isEmpty()) qDebug() << "Erreur : le nom du LSJ manque";
     else qDebug() << _LSJname;
 
-    int i = findex.size()/200;
+    int i = findex.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement du Pape...", "Arrêter", 0, findex.size()/ratio);
+    QProgressDialog progr("Chargement du LSJ...", "Arrêter", 0, findex.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -621,10 +621,10 @@ void Lemmat::lireBailly()
     if (_BaillyName.isEmpty()) qDebug() << "Erreur : le nom du Bailly manque";
     else qDebug() << _BaillyName;
 
-    int i = findex.size()/200;
+    int i = findex.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement du Pape...", "Arrêter", 0, findex.size()/ratio);
+    QProgressDialog progr("Chargement du Bailly...", "Arrêter", 0, findex.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -665,7 +665,7 @@ void Lemmat::lirePape()
     if (_PapeName.isEmpty()) qDebug() << "Erreur : le nom du Pape manque";
     else qDebug() << _PapeName;
 
-    int i = findex.size()/200;
+    int i = findex.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
     QProgressDialog progr("Chargement du Pape...", "Arrêter", 0, findex.size()/ratio);
@@ -1191,7 +1191,7 @@ void Lemmat::lireAnalyses()
     fluxL.setCodec("UTF-8");
     QString ligne;
     QString clef;
-    int i = fListe.size()/200;
+    int i = fListe.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
     QProgressDialog progr("Chargement des analyses...", "Arrêter", 0, fListe.size()/ratio);
@@ -1233,7 +1233,7 @@ void Lemmat::lireTraductions()
     QTextStream fluxL (&fListe);
     fluxL.setCodec("UTF-8");
     QString ligne;
-    int i = fListe.size()/200;
+    int i = fListe.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
     QProgressDialog progr("Chargement des traductions...", "Arrêter", 0, fListe.size()/ratio);

@@ -571,7 +571,18 @@ void MainWindow::aPropos()
 void MainWindow::majA()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier","~","Text files (*.txt)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"Text files (*.txt)");
+    if (nomFichier == _rscrDir + "analyses_gr.txt")
+    {
+        // C'est interdit !
+        QMessageBox::about(
+            this, tr("Attention !"),
+            tr("Il est impossible de mettre à jour le fichier de travail.\n"
+               "Il faut le copier <b>ailleurs</b> pour le modifier.\n"
+               "C'est ensuite le fichier modifié qu'il faudra importer.\n"));
+        return;
+    }
+
     if (!nomFichier.isEmpty())
     {
         if (QFile::exists(_rscrDir + "analyses_gr.txt"))
@@ -592,7 +603,18 @@ void MainWindow::majA()
 void MainWindow::majT()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier","~","CSV files (*.csv)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"CSV files (*.csv)");
+    if (nomFichier == _rscrDir + "trad_gr_en_fr_de.csv")
+    {
+        // C'est interdit !
+        QMessageBox::about(
+            this, tr("Attention !"),
+            tr("Il est impossible de mettre à jour le fichier de travail.\n"
+               "Il faut le copier <b>ailleurs</b> pour le modifier.\n"
+               "C'est ensuite le fichier modifié qu'il faudra importer.\n"));
+        return;
+    }
+
     if (!nomFichier.isEmpty())
     {
         if (QFile::exists(_rscrDir + "trad_gr_en_fr_de.csv"))
@@ -612,10 +634,21 @@ void MainWindow::majT()
 void MainWindow::majL()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier du LSJ","~","Text files (*.txt)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier du LSJ",QDir::homePath(),"Text files (*.txt)");
     if (!nomFichier.isEmpty())
     {
         QString nomCourt = nomFichier.section("/",-1);
+
+        if (nomFichier == _rscrDir + nomCourt)
+        {
+            // C'est interdit !
+            QMessageBox::about(
+                this, tr("Attention !"),
+                tr("Il est impossible de mettre à jour le fichier de travail.\n"
+                   "Il faut le copier <b>ailleurs</b> pour le modifier.\n"
+                   "C'est ensuite le fichier modifié qu'il faudra importer.\n"));
+            return;
+        }
 
         if (QFile::exists(_rscrDir + "LSJ.csv"))
         {
@@ -635,10 +668,21 @@ void MainWindow::majL()
 void MainWindow::majB()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier du Bailly","~","Text files (*.txt)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier du Bailly",QDir::homePath(),"Text files (*.txt)");
     if (!nomFichier.isEmpty())
     {
         QString nomCourt = nomFichier.section("/",-1);
+
+        if (nomFichier == _rscrDir + nomCourt)
+        {
+            // C'est interdit !
+            QMessageBox::about(
+                this, tr("Attention !"),
+                tr("Il est impossible de mettre à jour le fichier de travail.\n"
+                   "Il faut le copier <b>ailleurs</b> pour le modifier.\n"
+                   "C'est ensuite le fichier modifié qu'il faudra importer.\n"));
+            return;
+        }
 
         if (QFile::exists(_rscrDir + "Bailly.csv"))
         {
@@ -658,10 +702,21 @@ void MainWindow::majB()
 void MainWindow::majP()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier du Pape","~","Text files (*.txt)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier du Pape",QDir::homePath(),"Text files (*.txt)");
     if (!nomFichier.isEmpty())
     {
         QString nomCourt = nomFichier.section("/",-1);
+
+        if (nomFichier == _rscrDir + nomCourt)
+        {
+            // C'est interdit !
+            QMessageBox::about(
+                this, tr("Attention !"),
+                tr("Il est impossible de mettre à jour le fichier de travail.\n"
+                   "Il faut le copier <b>ailleurs</b> pour le modifier.\n"
+                   "C'est ensuite le fichier modifié qu'il faudra importer.\n"));
+            return;
+        }
 
         if (QFile::exists(_rscrDir + "Pape.csv"))
         {
@@ -697,7 +752,7 @@ void MainWindow::ouvrir()
 {
     nouveau();
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier","~","Text files (*.txt)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"Text files (*.txt)");
     if (!nomFichier.isEmpty())
     {
         QString txt;
@@ -730,7 +785,7 @@ void MainWindow::ouvrir()
 void MainWindow::sauver(QString nomFichier)
 {
     if (nomFichier.isEmpty()) nomFichier =
-        QFileDialog::getSaveFileName(this, "Sauvegarder le travail en cours", QString("~"), "*.txt");
+        QFileDialog::getSaveFileName(this, "Sauvegarder le travail en cours", QDir::homePath(), "*.txt");
     if (!nomFichier.isEmpty())
     {
         _changements = false;
