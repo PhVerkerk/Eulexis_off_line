@@ -540,14 +540,25 @@ void Lemmat::lireLSJ()
     _LSJname = linea.mid(1).trimmed();
     if (_LSJname.isEmpty()) qDebug() << "Erreur : le nom du LSJ manque";
     else qDebug() << _LSJname;
-    QProgressDialog progr("Chargement du LSJ...", "Arrêter", 0, findex.size());
+
+    int i = findex.size()/200;
+    int ratio = 1024;
+    while (ratio < i) ratio *= 2;
+    QProgressDialog progr("Chargement du Pape...", "Arrêter", 0, findex.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
+    i=0;
+    int j=0;
     while (!findex.atEnd ())
     {
         linea = findex.readLine();
-        progr.setValue(findex.pos());
+        i += linea.size();
+        if (j != i/ratio)
+        {
+            j = i / ratio;
+            progr.setValue(j);
+        }
         if (linea.startsWith('!') || linea.isEmpty()) continue;
         if (linea.contains(":"))
         {
@@ -609,9 +620,25 @@ void Lemmat::lireBailly()
     _BaillyName = linea.mid(1).trimmed();
     if (_BaillyName.isEmpty()) qDebug() << "Erreur : le nom du Bailly manque";
     else qDebug() << _BaillyName;
+
+    int i = findex.size()/200;
+    int ratio = 1024;
+    while (ratio < i) ratio *= 2;
+    QProgressDialog progr("Chargement du Pape...", "Arrêter", 0, findex.size()/ratio);
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
+    i=0;
+    int j=0;
     while (!findex.atEnd ())
     {
         linea = findex.readLine();
+        i += linea.size();
+        if (j != i/ratio)
+        {
+            j = i / ratio;
+            progr.setValue(j);
+        }
         if (linea.startsWith('!') || linea.isEmpty()) continue;
         if (linea.contains(":"))
         {
@@ -637,9 +664,25 @@ void Lemmat::lirePape()
     _PapeName = linea.mid(1).trimmed();
     if (_PapeName.isEmpty()) qDebug() << "Erreur : le nom du Pape manque";
     else qDebug() << _PapeName;
+
+    int i = findex.size()/200;
+    int ratio = 1024;
+    while (ratio < i) ratio *= 2;
+    QProgressDialog progr("Chargement du Pape...", "Arrêter", 0, findex.size()/ratio);
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
+    i=0;
+    int j=0;
     while (!findex.atEnd ())
     {
         linea = findex.readLine();
+        i += linea.size();
+        if (j != i/ratio)
+        {
+            j = i / ratio;
+            progr.setValue(j);
+        }
         if (linea.startsWith('!') || linea.isEmpty()) continue;
         if (linea.contains(":"))
         {
@@ -1148,19 +1191,22 @@ void Lemmat::lireAnalyses()
     fluxL.setCodec("UTF-8");
     QString ligne;
     QString clef;
-    QProgressDialog progr("Chargement des données...", "Arrêter", 0, fListe.size()/8192);
+    int i = fListe.size()/200;
+    int ratio = 1024;
+    while (ratio < i) ratio *= 2;
+    QProgressDialog progr("Chargement des analyses...", "Arrêter", 0, fListe.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
-    int i=0;
+    i=0;
     int j=0;
     while (!fluxL.atEnd ())
     {
         ligne = fluxL.readLine ();
         i += ligne.size();
-        if (j != i/8192)
+        if (j != i/ratio)
         {
-            j = i / 8192;
+            j = i / ratio;
             progr.setValue(j);
         }
         clef = ligne.section("\t",0,0);
@@ -1187,9 +1233,24 @@ void Lemmat::lireTraductions()
     QTextStream fluxL (&fListe);
     fluxL.setCodec("UTF-8");
     QString ligne;
+    int i = fListe.size()/200;
+    int ratio = 1024;
+    while (ratio < i) ratio *= 2;
+    QProgressDialog progr("Chargement des traductions...", "Arrêter", 0, fListe.size()/ratio);
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
+    i=0;
+    int j=0;
     while (!fluxL.atEnd ())
     {
         ligne = fluxL.readLine ();
+        i += ligne.size();
+        if (j != i/ratio)
+        {
+            j = i / ratio;
+            progr.setValue(j);
+        }
         if (!ligne.startsWith("!"))
         {
             _trad.insert(ligne.section("\t",0,0),ligne.section("\t",1));

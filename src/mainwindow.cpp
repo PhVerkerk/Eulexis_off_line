@@ -215,7 +215,7 @@ void MainWindow::readSettings()
     settings.beginGroup("options");
     _beta->setChecked(settings.value("beta",true).toBool());
     _exact->setChecked(settings.value("exact",true).toBool());
-    int pt = settings.value("zoom",12).toInt();
+    int pt = settings.value("zoom",14).toInt();
     QString police = settings.value("police","Times New Roman").toString();
     QFont font = QFont(police,pt);
     _txtEdit->setFont(font);
@@ -330,6 +330,8 @@ void MainWindow::createW()
     printAct->setShortcuts(QKeySequence::Print);
     quitAct->setShortcut(
         QKeySequence(tr("Ctrl+Q")));  // QKeySequence::Quit inopérant
+    balaiAct->setShortcut(
+        QKeySequence(tr("Ctrl+D")));  // Ctrl+D pour effacer
 
     _lineEdit = new QLineEdit("",this);
     _lineEdit->setMinimumWidth(100);
@@ -759,7 +761,7 @@ void MainWindow::recule()
 
 void MainWindow::consulter(QString f)
 {
-    if (f.isEmpty()) f = _lineEdit->text();
+    if (f.isEmpty()) f = _lineEdit->text().toLower();
     if (f.isEmpty()) return;
     _txtEdit->clear();
     QStringList donnees;
