@@ -90,6 +90,22 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
             ligne.prepend("<span style='color:red'>");
             ligne.append("</span>");
         }
+        else if (f_gr.startsWith("*") && !mot.startsWith("*"))
+        {
+            // La forme du texte commence avec une majuscule (en début de phrase ?).
+            QString m = f_gr.mid(1);
+            if (m.indexOf(reLettres) > 0)
+            {
+                QString esprit = m.mid(0,m.indexOf(reLettres));
+                m = m.mid(m.indexOf(reLettres));
+                m.insert(1,esprit);
+            }
+            if (m == mot)
+            {
+                ligne.prepend("<span style='color:orangered'>");
+                ligne.append("</span>");
+            }
+        }
         ligne.append("<ul>");
         for (int i = 1; i<ecl.size();i++)
         {
@@ -115,7 +131,15 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
             ligne.append("</li>\n");
         }
         if (ligne.startsWith("<span"))
-            llem.prepend(ligne + "</ul>");
+        {
+            if ((llem.size() > 0) && llem[0].startsWith("<span"))
+            {
+                if (ligne.contains(":red")) llem.prepend(ligne + "</ul>");
+                else llem.insert(1,ligne + "</ul>");
+                // Je peux avoir une égalité stricte et une moyennant la majuscule
+            }
+            else llem.prepend(ligne + "</ul>");
+        }
         else llem << ligne + "</ul>";
     }
     return llem;

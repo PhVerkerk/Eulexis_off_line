@@ -208,8 +208,11 @@ void MainWindow::readSettings()
         Pape->setChecked(settings.value("Pape",true).toBool());
         Bailly->setChecked(settings.value("Bailly",true).toBool());
         langAlld->setChecked(settings.value("Allemand",false).toBool());
+        if (langAlld->isChecked()) lAlld();
         langAngl->setChecked(settings.value("Anglais",false).toBool());
+        if (langAngl->isChecked()) lAngl();
         langFr->setChecked(settings.value("Français",true).toBool());
+        if (langFr->isChecked()) lFr();
     }
     settings.endGroup();
     settings.beginGroup("options");
@@ -1191,13 +1194,8 @@ void MainWindow::montrer3()
 
 void MainWindow::lemmatAlpha()
 {
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+//    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     _changements = true;
-    if (!_trois->isVisible())
-    {
-        _trois->show();
-        lunettes->setChecked(true);
-    }
     QString txt = _texte->toPlainText();
     if (txt.isEmpty()) return;
     _lemEdit->clear();
@@ -1219,54 +1217,75 @@ void MainWindow::lemmatAlpha()
     }
 //    mots.sort();
 //    mots.removeDuplicates();
-    int i = 0;
-    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, mots.values().size()-1, _second);
+    int ratio = 1;
+    int i = (mots.values().size()-1) / 100;
+    while (ratio < i) ratio *= 2;
+    int j = 0;
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, mots.values().size() / ratio, _second);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
     _trois->setUpdatesEnabled(false);
+    i = 0;
     foreach (QString mot, mots.values())
     {
         lemmatiser(mot);
-        progr.setValue(i);
         i++; // Uniquement pour la barre de progression.
+        if (j < i / ratio)
+        {
+            j = i / ratio;
+            progr.setValue(j);
+        }
     }
-    _trois->setUpdatesEnabled(true);
-    _trois->repaint();
-    QApplication::restoreOverrideCursor();
-}
-
-void MainWindow::lemmatTxt()
-{
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    _changements = true;
     if (!_trois->isVisible())
     {
         _trois->show();
         lunettes->setChecked(true);
     }
+    _trois->setUpdatesEnabled(true);
+    _trois->repaint();
+//    QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::lemmatTxt()
+{
+//    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    _changements = true;
     QString txt = _texte->toPlainText();
     if (txt.isEmpty()) return;
     _lemEdit->clear();
     QStringList lm = txt.split(QRegExp("\\b"));
-    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, lm.size()-1, _second);
+    int ratio = 1;
+    int i = (lm.size()-1) / 200;
+    while (ratio < i) ratio *= 2;
+    int j = 0;
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size()-1) / ratio, _second);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
     _trois->setUpdatesEnabled(false);
-    for (int i = 1; i < lm.size(); i+=2)
+    for (i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
-        progr.setValue(i);
+        if (j < i / ratio)
+        {
+            j = i / ratio;
+            progr.setValue(j);
+        }
         if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
             lemmatiser(mot);
     }
+    if (!_trois->isVisible())
+    {
+        _trois->show();
+        lunettes->setChecked(true);
+    }
     _trois->setUpdatesEnabled(true);
     _trois->repaint();
 //    _blabla->setText("");
-    QApplication::restoreOverrideCursor();
+//    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::lAlld()
