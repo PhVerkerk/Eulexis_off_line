@@ -93,6 +93,7 @@ private:
     QAction *chxPolice;
     QAction *findAct;
     QAction *reFindAct;
+    QAction *auxAct;
 
     QMenuBar *menuBar;
     QMenu *menuFichier;
@@ -120,6 +121,9 @@ private:
     bool _changements;
     bool alerte(bool sauv = true);
     QString rech;
+    QString repertoire;
+    bool plusPetit(QString g1, QString g2);
+    bool longs(QStringList sl);
 
 private slots:
     void exportPdf();
@@ -157,6 +161,7 @@ private slots:
     void choixPolice();
     void chercher();
     void rechercher();
+    void auxilium();
 
 public slots:
     void lemmatiser(QString f = "");

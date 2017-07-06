@@ -568,7 +568,7 @@ void Lemmat::lireLSJ()
     int i = findex.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement du LSJ...", "Arrêter", 0, findex.size()/ratio);
+    QProgressDialog progr("Chargement du LSJ...", QString(), 0, findex.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -648,7 +648,7 @@ void Lemmat::lireBailly()
     int i = findex.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement du Bailly...", "Arrêter", 0, findex.size()/ratio);
+    QProgressDialog progr("Chargement du Bailly...", QString(), 0, findex.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -692,7 +692,7 @@ void Lemmat::lirePape()
     int i = findex.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement du Pape...", "Arrêter", 0, findex.size()/ratio);
+    QProgressDialog progr("Chargement du Pape...", QString(), 0, findex.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -1218,7 +1218,7 @@ void Lemmat::lireAnalyses()
     int i = fListe.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement des analyses...", "Arrêter", 0, fListe.size()/ratio);
+    QProgressDialog progr("Chargement des analyses...", QString(), 0, fListe.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -1260,7 +1260,7 @@ void Lemmat::lireTraductions()
     int i = fListe.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement des traductions...", "Arrêter", 0, fListe.size()/ratio);
+    QProgressDialog progr("Chargement des traductions...", QString(), 0, fListe.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);

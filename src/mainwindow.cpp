@@ -39,6 +39,18 @@ bool EditLatin::event(QEvent *event)
             //  || lm[i+1].startsWith("´")
             if (mot.isEmpty ())
                 return QWidget::event (event);
+            while ((mot.size() > 0) && mot[0].isPunct())
+                mot = mot.mid(1);
+            if (mot.isEmpty())
+            {
+                // Le "mot" ne contenait que de la ponctuation.
+                // Je remonte au mot précédent...
+                tc.movePosition(QTextCursor::WordLeft,QTextCursor::MoveAnchor,2);
+                tc.select(QTextCursor::WordUnderCursor);
+                mot = tc.selectedText();
+//                qDebug() << mot;
+//                return true;
+            }
             if (mot.endsWith("·") || mot.endsWith("·"))
                 mot.chop(1);
             if (mot.endsWith("´"))
@@ -93,6 +105,7 @@ void EditLatin::mouseReleaseEvent(QMouseEvent *e)
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    repertoire = QDir::homePath();
     createW();
     createSecond();
     createTrois();
@@ -157,6 +170,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         settings.endGroup();
         settings.beginGroup("options");
         // settings.setValue("police", font.family());
+        settings.setValue("repertoire",repertoire);
         settings.setValue("beta",_beta->isChecked());
         settings.setValue("exact",_exact->isChecked());
 //        int pt = _txtEdit->font().pointSize();
@@ -216,6 +230,7 @@ void MainWindow::readSettings()
     }
     settings.endGroup();
     settings.beginGroup("options");
+    repertoire = settings.value("repertoire",repertoire).toString();
     _beta->setChecked(settings.value("beta",true).toBool());
     _exact->setChecked(settings.value("exact",true).toBool());
     int pt = settings.value("zoom",14).toInt();
@@ -275,6 +290,7 @@ void MainWindow::createW()
     fenTxt = new QAction(QIcon(":/res/dicolem.svg"), tr("Fenêtre de texte"), this);
     balaiAct = new QAction(QIcon(":res/edit-clear.svg"),
                            tr("&Effacer les résultats"), this);
+    auxAct = new QAction(QIcon(":res/help-browser.svg"), tr("aide"), this);
     zoomAct = new QAction(QIcon(":res/zoom.svg"), tr("Plus grand"), this);
     deZoomAct = new QAction(QIcon(":res/dezoom.svg"), tr("Plus petit"), this);
     yeux = new QAction(QIcon(":res/occhi-03.svg"), tr("Afficher le texte"), this);
@@ -422,6 +438,8 @@ void MainWindow::createW()
     mainToolBar->addAction(yeux);
     mainToolBar->addAction(lunettes);
     mainToolBar->addSeparator();
+    mainToolBar->addAction(auxAct);
+    mainToolBar->addSeparator();
     mainToolBar->addAction(quitAct);
 
     menuBar->addAction(menuFichier->menuAction());
@@ -481,6 +499,8 @@ void MainWindow::createW()
     menuExtra->addAction(actBailly);
     menuExtra->addSeparator();
     menuExtra->addAction(actComInd);
+
+    menuAide->addAction(auxAct);
     menuAide->addAction(actionA_propos);
 
     setWindowTitle(tr("Eulexis"));
@@ -503,6 +523,7 @@ void MainWindow::connecter()
     connect(lunettes, SIGNAL(triggered()), this, SLOT(montrer3()));
     connect(balaiAct, SIGNAL(triggered()), this, SLOT(effaceRes()));
     connect(quitAct, SIGNAL(triggered()), this, SLOT(close()));
+    connect(auxAct, SIGNAL(triggered()), this, SLOT(auxilium()));
 
     connect(fenCons, SIGNAL(triggered()), this, SLOT(avCons()));
     connect(fenLem, SIGNAL(triggered()), this, SLOT(avLem()));
@@ -563,9 +584,11 @@ void MainWindow::aPropos()
            "Licence GPL, © Philippe Verkerk, 2017 <br/><br/>\n"
            "Merci à :<ul>\n"
            "<li>Yves Ouvrard</li>\n"
+           "<li>Régis Robineau</li>\n"
            "<li>Jean-Paul Woitrain</li>\n"
            "<li>Philipp Roelli</li>\n"
-           "<li>Chaerephon</li>\n"
+           "<li>André Charbonnet (alias Chaerephon)</li>\n"
+           "<li>Mark de Wilde</li>\n"
            "<li>Perseus Project</li>\n"
            "<li>Equipex Biblissima</li></ul>"));
 
@@ -755,9 +778,10 @@ void MainWindow::ouvrir()
 {
     nouveau();
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"Text files (*.txt)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt)");
     if (!nomFichier.isEmpty())
     {
+        repertoire = QFileInfo (nomFichier).absolutePath ();
         QString txt;
         QFile fEntree (nomFichier);
         if (fEntree.open (QFile::ReadOnly | QFile::Text))
@@ -788,10 +812,11 @@ void MainWindow::ouvrir()
 void MainWindow::sauver(QString nomFichier)
 {
     if (nomFichier.isEmpty()) nomFichier =
-        QFileDialog::getSaveFileName(this, "Sauvegarder le travail en cours", QDir::homePath(), "*.txt");
+        QFileDialog::getSaveFileName(this, "Sauvegarder le travail en cours", repertoire, "*.txt");
     if (!nomFichier.isEmpty())
     {
         _changements = false;
+        repertoire = QFileInfo (nomFichier).absolutePath ();
         if (QFileInfo(nomFichier).suffix().isEmpty()) nomFichier.append(".txt");
         QFile f(nomFichier);
         if (f.open(QFile::WriteOnly))
@@ -831,15 +856,18 @@ void MainWindow::consulter(QString f)
         QStringList LSJdata = __lemmatiseur->consLSJ(f);
         if (!LSJdata.isEmpty())
         {
-            av = LSJdata[0];
+            if (plusPetit(LSJdata[0],f)) av = LSJdata[0];
             LSJdata.removeFirst();
-            ap = LSJdata[0];
+            if (plusPetit(f,LSJdata[0])) ap = LSJdata[0];
             LSJdata.removeFirst();
             liens.append(" LSJ " + LSJdata[0]);
             LSJdata.removeFirst();
 //            donnees.append("<h3><a name='#lsj'>LSJ 1940 : </a></h3>\n");
             LSJdata[0].prepend("<h3><a name='#lsj'>LSJ 1940 : </a></h3>\n");
-            donnees << LSJdata;
+            if ((LSJdata.size() == 1) || longs(LSJdata))
+                donnees << LSJdata;
+            else donnees << LSJdata.join("\n<br />");
+            // Si les articles sont courts, je les joins avant de passer à la suite.
         }
     }
     if (Pape->isChecked())
@@ -847,15 +875,20 @@ void MainWindow::consulter(QString f)
         QStringList LSJdata = __lemmatiseur->consPape(f);
         if (!LSJdata.isEmpty())
         {
-            if ((av < LSJdata[0]) || (av == "")) av = LSJdata[0];
+            if (plusPetit(LSJdata[0],f))
+                if (plusPetit(av, LSJdata[0]) || (av == "")) av = LSJdata[0];
             LSJdata.removeFirst();
-            if ((ap > LSJdata[0]) || (ap == "")) ap = LSJdata[0];
+            if (plusPetit(f,LSJdata[0]))
+                if (plusPetit(LSJdata[0], ap) || (ap == "")) ap = LSJdata[0];
             LSJdata.removeFirst();
             liens.append(" Pape " + LSJdata[0]);
             LSJdata.removeFirst();
 //            donnees.append("<h3><a name='#Pape'>Pape 1880 : </a></h3>\n");
             LSJdata[0].prepend("<h3><a name='#Pape'>Pape 1880 : </a></h3>\n");
-            donnees << LSJdata;
+            if ((LSJdata.size() == 1) || longs(LSJdata))
+                donnees << LSJdata;
+            else donnees << LSJdata.join("\n<br />");
+            // Si les articles sont courts, je les joins avant de passer à la suite.
         }
     }
     if (Bailly->isChecked())
@@ -863,15 +896,20 @@ void MainWindow::consulter(QString f)
         QStringList LSJdata = __lemmatiseur->consBailly(f);
         if (!LSJdata.isEmpty())
         {
-            if ((av < LSJdata[0]) || (av == "")) av = LSJdata[0];
+            if (plusPetit(LSJdata[0],f))
+                if (plusPetit(av, LSJdata[0]) || (av == "")) av = LSJdata[0];
             LSJdata.removeFirst();
-            if ((ap > LSJdata[0]) || (ap == "")) ap = LSJdata[0];
+            if (plusPetit(f,LSJdata[0]))
+                if (plusPetit(LSJdata[0],ap) || (ap == "")) ap = LSJdata[0];
             LSJdata.removeFirst();
             liens.append(" Bailly " + LSJdata[0]);
             LSJdata.removeFirst();
 //            donnees.append("<h3><a name='#Bailly'>Bailly abr. 1919 : </a></h3>\n");
             LSJdata[0].prepend("<h3><a name='#Bailly'>Bailly abr. 1919 : </a></h3>\n");
-            donnees << LSJdata;
+            if ((LSJdata.size() == 1) || longs(LSJdata))
+                donnees << LSJdata;
+            else donnees << LSJdata.join("\n<br />");
+            // Si les articles sont courts, je les joins avant de passer à la suite.
         }
     }
     if (donnees.isEmpty())
@@ -882,10 +920,13 @@ void MainWindow::consulter(QString f)
     else
     {
         liens.append("\n<br />");
+        QString res = liens;
         liens.prepend("<br />\n");
         _avant->setText(av);
         _apres->setText(ap);
-        _txtEdit->setHtml(liens + donnees.join(liens));
+        if (longs(donnees)) res.append(donnees.join(liens));
+        else res.append(donnees.join("\n<br />"));
+        _txtEdit->setHtml(res + liens);
     }
 }
 
@@ -942,7 +983,8 @@ void MainWindow::lemmatiser(QString f)
 
 void MainWindow::actualiser()
 {
-    QString lin = _lineEdit->text();
+    int i = _lineEdit->cursorPosition();
+    QString lin = _lineEdit->text().trimmed();
     _lineEdit2->setText(lin);
     if (lin.contains(reLettres))
         lin = latin2greek(lin);
@@ -952,11 +994,13 @@ void MainWindow::actualiser()
         _lemmatiser2->setText(lin);
         actionConsulter->setToolTip("Consulter l'article " + lin);
     }
+    _lineEdit->setCursorPosition(i);
 }
 
 void MainWindow::actualiser2()
 {
-    QString lin = _lineEdit2->text();
+    int i = _lineEdit2->cursorPosition();
+    QString lin = _lineEdit2->text().trimmed();
     _lineEdit->setText(lin);
     if (lin.contains(reLettres))
         lin = latin2greek(lin);
@@ -966,6 +1010,7 @@ void MainWindow::actualiser2()
         _lemmatiser2->setText(lin);
         actionConsulter->setToolTip("Consulter l'article " + lin);
     }
+    _lineEdit2->setCursorPosition(i);
 }
 
 QString MainWindow::latin2greek(QString f)
@@ -1220,7 +1265,7 @@ void MainWindow::lemmatAlpha()
     int ratio = 1;
     int i = (mots.values().size()-1) / 100;
     while (ratio < i) ratio *= 2;
-    int j = 0;
+    int j = 1;
     QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, mots.values().size() / ratio, _second);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
@@ -1231,10 +1276,13 @@ void MainWindow::lemmatAlpha()
     {
         lemmatiser(mot);
         i++; // Uniquement pour la barre de progression.
-        if (j < i / ratio)
+        if (j * ratio < i)
         {
             j = i / ratio;
             progr.setValue(j);
+            if (progr.wasCanceled())
+                break;
+            //... Stop !
         }
     }
     if (!_trois->isVisible())
@@ -1258,7 +1306,7 @@ void MainWindow::lemmatTxt()
     int ratio = 1;
     int i = (lm.size()-1) / 200;
     while (ratio < i) ratio *= 2;
-    int j = 0;
+    int j = 1;
     QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size()-1) / ratio, _second);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
@@ -1267,10 +1315,13 @@ void MainWindow::lemmatTxt()
     for (i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
-        if (j < i / ratio)
+        if (j * ratio < i)
         {
             j = i / ratio;
             progr.setValue(j);
+            if (progr.wasCanceled())
+                break;
+            //... Stop !
         }
         if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
             mot.append("'");
@@ -1390,6 +1441,11 @@ void MainWindow::choixPolice()
         // font is set to the font the user selected
         _texte->setFont(font);
         _lemEdit->setFont(font);
+        QTextCursor tc(_lemEdit->document());
+        QTextCharFormat tcf = tc.charFormat();
+        tcf.setFont(font);
+        tc.select(QTextCursor::Document);
+        tc.mergeCharFormat(tcf);
         _txtEdit->setFont(font);
     }
 }
@@ -1522,3 +1578,21 @@ void MainWindow::rechercher()
         }
     }
 }
+
+bool MainWindow::plusPetit(QString g1, QString g2)
+{
+    return (latin2greek(__lemmatiseur->nettoie(g1)) < latin2greek(__lemmatiseur->nettoie(g2)));
+}
+
+bool MainWindow::longs(QStringList sl)
+{
+    for (int i=0; i<sl.size();i++)
+        if (sl[i].size() > 4000) return true;
+    return false;
+}
+
+void MainWindow::auxilium()
+{
+    QDesktopServices::openUrl(QUrl("file:" + qApp->applicationDirPath() + "/ressources/doc/index.html"));
+}
+
