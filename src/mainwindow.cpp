@@ -1117,7 +1117,7 @@ void MainWindow::suivreLien(QUrl url)
     {
         lien = lien.mid(13);
         lien.replace("%7C","|");
-        qDebug() << lien << __lemmatiseur->beta2unicode(lien,false);
+//        qDebug() << lien << __lemmatiseur->beta2unicode(lien,false);
         consulter(__lemmatiseur->beta2unicode(lien,false));
     }
     // Normalement, c'est un # pour aller à une ancre.

@@ -35,7 +35,7 @@ void Lemmat::lireData()
 {
     lireAnalyses();
     lireTraductions();
-qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
+// qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
     lireLSJ();
     lireBailly();
     lirePape();
@@ -179,7 +179,7 @@ QString Lemmat::uni2betacode(QString f)
     for (int i=0; i<_beta.size();i++)
         f.replace(_uni[i],_beta[i]);
     for (int i=0; i<f.size(); i++)
-        if (!f[i].unicode() > 127) qDebug() << f[i] << f;
+        if (f[i].unicode() > 127) qDebug() << f[i] << f;
     return f;
 }
 
@@ -563,7 +563,7 @@ void Lemmat::lireLSJ()
     QString linea = findex.readLine();
     _LSJname = linea.mid(1).trimmed();
     if (_LSJname.isEmpty()) qDebug() << "Erreur : le nom du LSJ manque";
-    else qDebug() << _LSJname;
+//    else qDebug() << _LSJname;
 
     int i = findex.size()/100;
     int ratio = 1024;
@@ -594,7 +594,7 @@ void Lemmat::lireLSJ()
         else qDebug() << "Erreur dans l'index du LSJ : " << linea;
     }
     findex.close ();
-    qDebug() << _LSJindex.size();
+//    qDebug() << _LSJindex.size();
 
     // Je lis aussi la liste des références aux œuvres.
     findex.setFileName(_rscrDir + "Ref_LSJ.csv");
@@ -643,7 +643,7 @@ void Lemmat::lireBailly()
     QString linea = findex.readLine();
     _BaillyName = linea.mid(1).trimmed();
     if (_BaillyName.isEmpty()) qDebug() << "Erreur : le nom du Bailly manque";
-    else qDebug() << _BaillyName;
+//    else qDebug() << _BaillyName;
 
     int i = findex.size()/100;
     int ratio = 1024;
@@ -674,7 +674,7 @@ void Lemmat::lireBailly()
         else qDebug() << "Erreur dans l'index du Bailly : " << linea;
     }
     findex.close ();
-    qDebug() << _BaillyIndex.size();
+//    qDebug() << _BaillyIndex.size();
 }
 
 void Lemmat::lirePape()
@@ -687,7 +687,7 @@ void Lemmat::lirePape()
     QString linea = findex.readLine();
     _PapeName = linea.mid(1).trimmed();
     if (_PapeName.isEmpty()) qDebug() << "Erreur : le nom du Pape manque";
-    else qDebug() << _PapeName;
+//    else qDebug() << _PapeName;
 
     int i = findex.size()/100;
     int ratio = 1024;
@@ -718,7 +718,7 @@ void Lemmat::lirePape()
         else qDebug() << "Erreur dans l'index du Pape : " << linea;
     }
     findex.close ();
-    qDebug() << _PapeIndex.size();
+//    qDebug() << _PapeIndex.size();
 }
 
 QStringList Lemmat::consLSJ(QString f)
@@ -840,7 +840,7 @@ QStringList Lemmat::consBailly(QString f)
         if (article.contains("v.") || article.contains("c.") || article.contains("p."))
         {
             // Il y a probablement des renvois
-            qDebug() << article;
+//            qDebug() << article;
             article = lierRenvois(article, " v.");
             article = lierRenvois(article, " c.");
             article = lierRenvois(article, " p.");
@@ -850,7 +850,7 @@ QStringList Lemmat::consBailly(QString f)
             article = lierRenvois(article, ">p.</i>&nbsp;");
             article = lierRenvois(article, ">v.</i>&nbsp;");
             article = lierRenvois(article, ">c.</i>&nbsp;");
-            qDebug() << article;
+//            qDebug() << article;
         }
         res[i] = article;
     }
