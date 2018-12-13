@@ -276,6 +276,8 @@ void MainWindow::createW()
     actionOuvrir->setObjectName(QStringLiteral("actionOuvrir"));
     actionSauver = new QAction(QIcon(":/res/document-save.svg"),"Sauver",this);
     actionSauver->setObjectName(QStringLiteral("actionSauver"));
+    actionTxt2csv = new QAction("Txt2csv",this);
+    actionTxt2csv->setObjectName(QStringLiteral("Convertir TXT en CSV"));
     exportAct = new QAction(QIcon(":res/buffer-export_pdf2.png"), tr("Exporter en pdf"), this);
     printAct = new QAction(QIcon(":res/print.svg"), tr("Im&primer"), this);
     actionA_propos = new QAction("À propos",this);
@@ -452,6 +454,8 @@ void MainWindow::createW()
     menuFichier->addAction(actionOuvrir);
     menuFichier->addAction(actionSauver);
     menuFichier->addSeparator();
+    menuFichier->addAction(actionTxt2csv);
+    menuFichier->addSeparator();
     menuFichier->addAction(exportAct);
     menuFichier->addAction(printAct);
 /*    menuFichier->addSeparator();
@@ -516,6 +520,7 @@ void MainWindow::connecter()
     connect(actionNouveau, SIGNAL(triggered()), this, SLOT(nouveau()));
     connect(actionOuvrir, SIGNAL(triggered()), this, SLOT(ouvrir()));
     connect(actionSauver, SIGNAL(triggered()), this, SLOT(sauver()));
+    connect(actionTxt2csv, SIGNAL(triggered()), this, SLOT(txt2csv()));
     connect(exportAct, SIGNAL(triggered()), this, SLOT(exportPdf()));
     connect(printAct, SIGNAL(triggered()), this, SLOT(imprimer()));
     connect(actionA_propos, SIGNAL(triggered()), this, SLOT(aPropos()));
@@ -1337,6 +1342,70 @@ void MainWindow::lemmatTxt()
     _trois->repaint();
 //    _blabla->setText("");
 //    QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::txt2csv()
+{
+    QString nomFichier =
+            QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt)");
+    if (nomFichier.isEmpty()) return;
+    repertoire = QFileInfo (nomFichier).absolutePath ();
+    QString txt;
+    QFile fEntree (nomFichier);
+    if (fEntree.open (QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream fluxL (&fEntree);
+        fluxL.setCodec("UTF-8");
+        txt = fluxL.readAll();
+    }
+    fEntree.close();
+    if (txt.isEmpty()) return;
+    nomFichier.replace(".txt",".csv");
+    fEntree.setFileName(nomFichier);
+    if (!fEntree.open (QFile::WriteOnly | QFile::Text)) return;
+    QTextStream fluxL (&fEntree);
+    fluxL.setCodec("UTF-8");
+// Je suis prêt à écrire des choses dans fluxL
+    QStringList lm = txt.split(QRegExp("\\b"));
+    int ratio = 1;
+    int i = (lm.size()-1) / 200;
+    while (ratio < i) ratio *= 2;
+    int j = 1;
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size()-1) / ratio, _second);
+    progr.setWindowModality(Qt::WindowModal);
+    progr.setMinimumDuration(1000);
+    progr.setValue(0);
+    QString res;
+    for (i = 1; i < lm.size(); i+=2)
+    {
+        QString mot = lm[i];
+        if (j * ratio < i)
+        {
+            j = i / ratio;
+            progr.setValue(j);
+            if (progr.wasCanceled())
+                break;
+            //... Stop !
+        }
+        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
+            mot.append("'");
+        if (!mot.contains(QRegExp("\\d")))
+        {
+            QStringList llem = __lemmatiseur->lem2csv(mot,_beta->isChecked());
+            // Si j'ai passé une forme en grec avec décorations,
+            // la première peut être en rouge si elle est exacte.
+            fluxL << mot << "\t";
+            if (!llem.isEmpty())
+            {
+                if (_exact->isChecked() && llem[0].startsWith("<"))
+                    res = llem[0];
+                else res = llem.join("\t");
+            }
+            res.remove("<");
+            fluxL << res << "\n";
+        }
+    }
+    fEntree.close();
 }
 
 void MainWindow::lAlld()

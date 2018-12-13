@@ -64,6 +64,7 @@ private:
     QAction *actionNouveau;
     QAction *actionOuvrir;
     QAction *actionSauver;
+    QAction *actionTxt2csv;
     QAction *actionA_propos;
     QAction *actionConsulter;
     QAction *deZoomAct;
@@ -151,6 +152,7 @@ private slots:
     void montrer3();
     void lemmatTxt();
     void lemmatAlpha();
+    void txt2csv();
     void lFr();
     void lAngl();
     void lAlld();

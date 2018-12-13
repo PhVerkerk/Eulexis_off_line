@@ -77,6 +77,7 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
 //    QFile fGrAn (_rscrDir + "greek-analyses.txt");
 //    fGrAn.open (QIODevice::ReadOnly|QIODevice::Text);
     QString analyses = _formes.value(f);
+//    qDebug() << f << analyses;
 //    foreach (qint64 p, _formes.values(f))
     foreach (QString ligne, analyses.split("}\t"))
     {
@@ -141,6 +142,109 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
             else llem.prepend(ligne + "</ul>");
         }
         else llem << ligne + "</ul>";
+    }
+    return llem;
+}
+
+/**
+ * @brief Lemmat::lem2csv
+ * @param f : la forme à lemmatiser
+ * @param beta : pour avoir des beta intérieurs dans les formes
+ * @return Une QStringList avec les différents lemmes possibles
+ *
+ * Il s'agit de reprendre la routine lemmatise ci-dessus,
+ * mais on ne veut garder que les lemmes pour les mettre
+ * dans un fichier csv délimité par des tab.
+ * Il n'y a donc plus de balise HTML, mais je dois distinguer
+ * une forme exacte d'une forme approchée.
+ */
+QStringList Lemmat::lem2csv(QString f,bool beta)
+{
+    QString f_gr = "";
+    if (!f.contains(reLettres))
+    {
+        f_gr = f; // Je garde la forme grecque.
+        f = nettoie(f_gr);
+        f_gr = uni2betacode(f_gr);
+        // Je préfère convertir la forme grecque en betacode pour éviter le pb tonos / oxia.
+        // Mark de Wilde m'a signalé que l'accent grave remplace souvent l'accent aigu.
+        // De fait, il n'y a que 18 accents graves dans analyses_gr, tjs sur les lemmes.
+        f_gr.replace("\\","/");
+        // Il peut y avoir un accent d'enclitique : aigu sur la dernière syllabe.
+        if ((f_gr.count('/') == 2) ||
+                ((f_gr.count('/') == 1) && (f_gr.count('=') == 1) && (f_gr.indexOf('/') > f_gr.indexOf('='))))
+            f_gr.remove(f_gr.lastIndexOf('/'),1);
+    }
+//    qDebug() << beta << f << f_gr;
+    QStringList llem;
+    if (!_formes.contains(f))
+    {
+//      Si la forme n'est pas connue, je retourne une liste vide.
+        return llem;
+    }
+    QString analyses = _formes.value(f);
+    // Dans la QMap _formes, toutes les formes décorées différemment
+    // sont rangées dans une même QString.
+    // Elles partagent la même clef qui est la forme sans décoration.
+    foreach (QString ligne, analyses.split("}\t"))
+    {
+        // La ligne est ici l'information liée à l'une des formes rattachées à la clef.
+        QStringList ecl = ligne.split("{");
+        // la ligne est composée comme suit :
+        // "forme1\t{lemme1_1\tanalyse1_1}{lemme1_2\tanalyse1_2}...
+        // Le premier éclat a donc un contenu différent de celui des autres.
+        QString mot = ecl[0].mid(0,ecl[0].size()-1);
+        // Je supprime la tabulation qui trainait.
+//        ligne = beta2unicode(mot,beta);
+        // Je préparais ma ligne de réponse avec la forme en grec.
+        // Maintenant, je n'ai besoin de rien.
+        ligne = "";
+        if (mot == f_gr) ligne = "<<";
+        // Le mot est exactement le bon (avec toutes ses décorations).
+        else if (f_gr.startsWith("*") && !mot.startsWith("*"))
+        {
+            // La forme du texte commence avec une majuscule (en début de phrase ?).
+            QString m = f_gr.mid(1);
+            if (m.indexOf(reLettres) > 0)
+            {
+                QString esprit = m.mid(0,m.indexOf(reLettres));
+                m = m.mid(m.indexOf(reLettres));
+                m.insert(1,esprit);
+            }
+            if (m == mot) ligne = "<";
+            // Le mot est bon à la majuscule prêt.
+        }
+        for (int i = 1; i<ecl.size();i++)
+        {
+            QStringList e = ecl[i].split("\t");
+            e[1].remove("}");
+//            QString forme = beta2unicode(e[0],beta);
+            QString lem = e[0];
+            if (lem.contains(","))
+            {
+                lem = e[0].section(",",1);
+                lem.remove(",");
+            }
+            lem = beta2unicode(lem,beta);
+            if (!ligne.contains(lem))
+            {
+                ligne.append(lem);
+                ligne.append("\t");
+                // Je n'ajoute le lemme que s'il n'y est pas déjà.
+            }
+        }
+        if (ligne.startsWith("<"))
+        {
+            // Ma ligne est exacte au moins à la majuscule près.
+            if ((llem.size() > 0) && llem[0].startsWith("<"))
+            {
+                if (ligne.startsWith("<<")) llem.prepend(ligne);
+                else llem.insert(1,ligne);
+                // Je peux avoir une égalité stricte et une moyennant la majuscule
+            }
+            else llem.prepend(ligne);
+        }
+        else llem << ligne;
     }
     return llem;
 }
