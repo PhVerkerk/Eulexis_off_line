@@ -120,8 +120,8 @@ void MainWindow::connecter()
 
     connect(actionB2U, SIGNAL(triggered()), this, SLOT(bet2uni()));
     connect(actionU2B, SIGNAL(triggered()), this, SLOT(uni2bet()));
-    connect(_b2u, SIGNAL(pressed()), this, SLOT(bet2uni()));
-    connect(_u2b, SIGNAL(pressed()), this, SLOT(uni2bet()));
+    connect(_b2u, SIGNAL(clicked()), this, SLOT(bet2uni()));
+    connect(_u2b, SIGNAL(clicked()), this, SLOT(uni2bet()));
     connect(actionA_propos, SIGNAL(triggered()), this, SLOT(aPropos()));
     connect(quitAct, SIGNAL(triggered()), this, SLOT(close()));
 
@@ -155,7 +155,7 @@ void MainWindow::aPropos()
 void MainWindow::ouvrir()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt,*.csv)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt;*.csv)");
     if (!nomFichier.isEmpty())
     {
         repertoire = QFileInfo (nomFichier).absolutePath ();
