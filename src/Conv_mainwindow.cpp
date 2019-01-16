@@ -85,6 +85,12 @@ void MainWindow::createW()
     _betaButton->setChecked(true);
     _betaButton->setToolTip("Distinguer les beta");
 
+    _autoName = new QToolButton(this);
+    _autoName->setText("autoName");
+    _autoName->setCheckable(true);
+    _autoName->setChecked(true);
+    _autoName->setToolTip("Nomme automatiquement le fichier de sortie");
+
     menuBar = new QMenuBar(this);
     menuBar->setObjectName(QStringLiteral("menuBar"));
     menuBar->setGeometry(QRect(0, 0, 768, 22));
@@ -98,6 +104,8 @@ void MainWindow::createW()
 
     mainToolBar->addWidget(_b2u);
     mainToolBar->addWidget(_u2b);
+    mainToolBar->addSeparator();
+    mainToolBar->addWidget(_autoName);
     mainToolBar->addSeparator();
     mainToolBar->addWidget(_betaButton);
     mainToolBar->addSeparator();
@@ -113,6 +121,47 @@ void MainWindow::createW()
 
     setWindowTitle(tr("Greek Converter"));
     setWindowIcon(QIcon(":/res/Eulexis.png"));
+
+    // Préparer le dialogue pour les fichiers CSV
+    dialCSV = new QDialog(this);
+    group1 = new QButtonGroup(this);
+    group2 = new QButtonGroup(this);
+    rbAll = new QRadioButton("All",this);
+    rbRange = new QRadioButton("Range :",this);
+    rbAll->setChecked(true);
+    rbRange->setChecked(false);
+    group1->addButton(rbAll);
+    group1->addButton(rbRange);
+    rbTab = new QRadioButton("Tab",this);
+    rbComma = new QRadioButton("Comma",this);
+    rbTab->setChecked(true);
+    rbComma->setChecked(false);
+    group2->addButton(rbTab);
+    group2->addButton(rbComma);
+    range = new QLineEdit(this);
+    range->setText("1,3-5");
+    QLabel *tTitre = new QLabel("Convert a CSV or TSV file.");
+    QLabel *tCS = new QLabel("Column separator : ");
+
+    QPushButton *okButton = new QPushButton(tr("OK"));
+    connect(okButton, SIGNAL(clicked()), this, SLOT(fermeDial()));
+    QPushButton *finButton = new QPushButton(tr("Annuler"));
+    connect(finButton, SIGNAL(clicked()), this, SLOT(annuleDial()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(tTitre,0,0,Qt::AlignCenter);
+    layout->addWidget(rbAll,1,0,Qt::AlignLeft);
+    layout->addWidget(rbRange,2,0,Qt::AlignLeft);
+    layout->addWidget(range,2,1,Qt::AlignLeft);
+    layout->addWidget(tCS,3,0,Qt::AlignRight);
+    layout->addWidget(rbTab,4,0,Qt::AlignLeft);
+    layout->addWidget(rbComma,4,1,Qt::AlignLeft);
+    layout->addWidget(finButton,5,0,Qt::AlignRight);
+    layout->addWidget(okButton,5,1,Qt::AlignRight);
+
+    dialCSV->setLayout(layout);
+
+
 }
 
 void MainWindow::connecter()
@@ -158,13 +207,15 @@ void MainWindow::ouvrir()
             QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt;*.csv)");
     if (!nomFichier.isEmpty())
     {
-        repertoire = QFileInfo (nomFichier).absolutePath ();
         _texte.clear();
         QFile fEntree (nomFichier);
         if (fEntree.open (QFile::ReadOnly | QFile::Text))
         {
             _texte = fEntree.readAll();
-            _isCSV = (QFileInfo(nomFichier).suffix() == "csv");
+            QFileInfo fi(nomFichier);
+            repertoire = fi.absolutePath ();
+            nom = fi.baseName();
+            _isCSV = (fi.suffix() == "csv");
         }
     }
 }
@@ -172,11 +223,12 @@ void MainWindow::ouvrir()
 void MainWindow::sauver(QString nomFichier)
 {
     if (nomFichier.isEmpty()) nomFichier =
-        QFileDialog::getSaveFileName(this, "Sauvegarder le travail en cours", repertoire, "*.txt");
+        QFileDialog::getSaveFileName(this, "Sauvegarder le travail en cours", repertoire, "*.txt;*csv");
     if (!nomFichier.isEmpty())
     {
-        repertoire = QFileInfo (nomFichier).absolutePath ();
-        if (QFileInfo(nomFichier).suffix().isEmpty())
+        QFileInfo fi(nomFichier);
+        repertoire = fi.absolutePath ();
+        if (fi.suffix().isEmpty())
         {
             if (_isCSV) nomFichier.append(".csv");
             else nomFichier.append(".txt");
@@ -220,8 +272,6 @@ QString MainWindow::uni2betacode(QString f)
     // Transf l'unicode en betacode
     for (int i=0; i<_beta.size();i++)
         f.replace(_uni[i],_beta[i]);
-//    for (int i=0; i<f.size(); i++)
-//        if (f[i].unicode() > 127) qDebug() << f[i] << f;
     return f;
 }
 
@@ -230,14 +280,92 @@ void MainWindow::bet2uni()
     // Ouvrir, transformer et sauver.
 
     ouvrir();
-    _texte = beta2unicode(_texte,_betaButton->isChecked());
-    sauver();
+    _annule = false;
+    if (_isCSV) dialCSV->exec();
+    if (_annule) return;
+    if (!_isCSV || rbAll->isChecked())
+        _texte = beta2unicode(_texte,_betaButton->isChecked());
+    else
+    {
+        // Je dois décomposer chaque ligne pour ne convertir
+        // que les colonnes demandées.
+        QString sep = ",";
+        if (rbTab->isChecked()) sep = "\t";
+        QList<int> valeurs = listEntiers(range->text());
+        QStringList lignes = _texte.split("\n");
+        for (int i=0 ; i<lignes.size() ; i++)
+        {
+            QStringList colonnes = lignes[i].split(sep);
+            for (int j=0 ; j<valeurs.size() ; j++)
+                if (valeurs[j]<colonnes.size())
+                    colonnes[valeurs[j]] =
+                            beta2unicode(colonnes[valeurs[j]],_betaButton->isChecked());
+            lignes[i] = colonnes.join(sep);
+        }
+        _texte = lignes.join("\n");
+    }
+    if (_autoName->isChecked())
+        sauver(repertoire + "/" + nom + "_conv");
+    else sauver();
 }
 
 void MainWindow::uni2bet()
 {
     // Ouvrir, transformer et sauver.
     ouvrir();
-    _texte = uni2betacode(_texte);
-    sauver();
+    _annule = false;
+    if (_isCSV) dialCSV->exec();
+    if (_annule) return;
+    if (!_isCSV || rbAll->isChecked())
+        _texte = uni2betacode(_texte);
+    else
+    {
+        // Je dois décomposer chaque ligne pour ne convertir
+        // que les colonnes demandées.
+        QString sep = ",";
+        if (rbTab->isChecked()) sep = "\t";
+        QList<int> valeurs = listEntiers(range->text());
+        QStringList lignes = _texte.split("\n");
+        for (int i=0 ; i<lignes.size() ; i++)
+        {
+            QStringList colonnes = lignes[i].split(sep);
+            for (int j=0 ; j<valeurs.size() ; j++)
+                if (valeurs[j]<colonnes.size())
+                    colonnes[valeurs[j]] =
+                            uni2betacode(colonnes[valeurs[j]]);
+            lignes[i] = colonnes.join(sep);
+        }
+        _texte = lignes.join("\n");
+    }
+    if (_autoName->isChecked())
+        sauver(repertoire + "/" + nom + "_conv");
+    else sauver();
+}
+
+void MainWindow::fermeDial()
+{
+    _annule = false;
+    dialCSV->close();
+}
+
+void MainWindow::annuleDial()
+{
+    _annule = true;
+    dialCSV->close();
+}
+
+QList<int> MainWindow::listEntiers(QString le)
+{
+    QList<int> li;
+    QStringList eclats = le.split(",");
+    for (int i=0 ; i<eclats.size() ; i++)
+        if (eclats[i].contains("-"))
+        {
+            // C'est un intervalle
+            for (int j=eclats[i].section("-",0,0).toInt() - 1 ;
+                 j<eclats[i].section("-",1,1).toInt() ; j++)
+                li << j;
+        }
+        else li << eclats[i].toInt() - 1;
+    return li;
 }

@@ -20,6 +20,7 @@ private:
     QPushButton *_b2u;
     QPushButton *_u2b;
     QToolButton *_betaButton;
+    QToolButton *_autoName;
     QString _texte;
     bool _isCSV;
 
@@ -49,6 +50,20 @@ private:
     QStringList _uni;
 
     QString repertoire;
+    QString nom;
+
+    // Pour le dialogue à propos des fichiers CSV
+    QDialog * dialCSV;
+    QButtonGroup * group1;
+    QButtonGroup * group2;
+    QRadioButton * rbAll;
+    QRadioButton * rbRange;
+    QLineEdit * range;
+    QRadioButton * rbTab;
+    QRadioButton * rbComma;
+    bool _annule;
+
+    QList<int> listEntiers(QString le);
 
 private slots:
     void closeEvent(QCloseEvent *event);
@@ -56,6 +71,9 @@ private slots:
 
     void bet2uni();
     void uni2bet();
+
+    void annuleDial();
+    void fermeDial();
 
 };
 
