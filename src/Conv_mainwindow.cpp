@@ -219,7 +219,7 @@ void MainWindow::ouvrir()
         if (fEntree.open (QFile::ReadOnly | QFile::Text))
         {
             _txtEdit->append("Loading file : "+nomFichier+"\n");
-            _texte = fEntree.readAll();
+            _texte = QString::fromUtf8(fEntree.readAll());
             QFileInfo fi(nomFichier);
             repertoire = fi.absolutePath ();
             nom = fi.baseName();
