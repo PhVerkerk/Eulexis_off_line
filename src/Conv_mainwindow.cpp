@@ -211,13 +211,14 @@ void MainWindow::aPropos()
 void MainWindow::ouvrir()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt;*.csv)");
+            QFileDialog::getOpenFileName(this, "Open file",repertoire,"Text files (*.txt;*.csv)");
     if (!nomFichier.isEmpty())
     {
         _texte.clear();
         QFile fEntree (nomFichier);
         if (fEntree.open (QFile::ReadOnly | QFile::Text))
         {
+            _txtEdit->append("Loading file : "+nomFichier+"\n");
             _texte = fEntree.readAll();
             QFileInfo fi(nomFichier);
             repertoire = fi.absolutePath ();
@@ -230,7 +231,7 @@ void MainWindow::ouvrir()
 void MainWindow::sauver(QString nomFichier)
 {
     if (nomFichier.isEmpty()) nomFichier =
-        QFileDialog::getSaveFileName(this, "Sauvegarder le travail en cours", repertoire, "*.txt;*csv");
+        QFileDialog::getSaveFileName(this, "Save file as :", repertoire, "*.txt;*csv");
     if (!nomFichier.isEmpty())
     {
         QFileInfo fi(nomFichier);
@@ -243,6 +244,7 @@ void MainWindow::sauver(QString nomFichier)
         QFile f(nomFichier);
         if (f.open(QFile::WriteOnly))
         {
+            _txtEdit->append("Saving file : "+nomFichier+"\n");
             f.write(_texte.toUtf8());
             f.close();
         }
@@ -288,11 +290,15 @@ void MainWindow::bet2uni()
     if (_isCSV) dialCSV->exec();
     if (_annule) return;
     if (!_isCSV || rbAll->isChecked())
+    {
+        _txtEdit->append("Converting to unicode.\n");
         _texte = beta2unicode(_texte,_betaButton->isChecked());
+    }
     else
     {
         // Je dois décomposer chaque ligne pour ne convertir
         // que les colonnes demandées.
+        _txtEdit->append("Converting column "+range->text()+" to unicode\n");
         QString sep = ",";
         if (rbTab->isChecked()) sep = "\t";
         QList<int> valeurs = listEntiers(range->text());
@@ -311,6 +317,7 @@ void MainWindow::bet2uni()
     if (_autoName->isChecked())
         sauver(repertoire + "/" + nom + "_conv");
     else sauver();
+    _txtEdit->append("Done !\n");
 }
 
 void MainWindow::uni2bet()
@@ -321,11 +328,15 @@ void MainWindow::uni2bet()
     if (_isCSV) dialCSV->exec();
     if (_annule) return;
     if (!_isCSV || rbAll->isChecked())
+    {
+        _txtEdit->append("Converting to betacode.\n");
         _texte = uni2betacode(_texte);
+    }
     else
     {
         // Je dois décomposer chaque ligne pour ne convertir
         // que les colonnes demandées.
+        _txtEdit->append("Converting column "+range->text()+" to betacode\n");
         QString sep = ",";
         if (rbTab->isChecked()) sep = "\t";
         QList<int> valeurs = listEntiers(range->text());
@@ -344,6 +355,7 @@ void MainWindow::uni2bet()
     if (_autoName->isChecked())
         sauver(repertoire + "/" + nom + "_conv");
     else sauver();
+    _txtEdit->append("Done !\n");
 }
 
 void MainWindow::fermeDial()
