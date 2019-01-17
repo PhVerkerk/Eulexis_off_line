@@ -259,7 +259,11 @@ QString Lemmat::beta2unicode(QString f, bool beta)
         // Le sigma final
     }
 //    qDebug() << f;
-    if (!beta) f.replace("b","β");
+    if (!beta)
+    {
+        f.replace("*b","Β");
+        f.replace("b","β");
+    }
     else if (f.startsWith("b"))
         f = "β" + f.mid(1);
 //    qDebug() << beta << f;

@@ -85,6 +85,12 @@ void MainWindow::createW()
     _betaButton->setChecked(true);
     _betaButton->setToolTip("Distinguer les beta");
 
+    _capsButton = new QToolButton(this);
+    _capsButton->setText("Caps");
+    _capsButton->setCheckable(true);
+    _capsButton->setChecked(false);
+    _capsButton->setToolTip("Capital betacode");
+
     _autoName = new QToolButton(this);
     _autoName->setText("autoName");
     _autoName->setCheckable(true);
@@ -108,6 +114,7 @@ void MainWindow::createW()
     mainToolBar->addWidget(_autoName);
     mainToolBar->addSeparator();
     mainToolBar->addWidget(_betaButton);
+    mainToolBar->addWidget(_capsButton);
     mainToolBar->addSeparator();
     mainToolBar->addAction(quitAct);
 
@@ -246,25 +253,21 @@ QString MainWindow::beta2unicode(QString f, bool beta)
 {
     // Transf le betacode en unicode
         // Le sigma final
+    f.append(" ");
+    f.prepend(" ");
+    f = f.toLower();
     f.replace(reSigmaFinal,"ς\\1");
-//    qDebug() << f;
-    if (!beta) f.replace("b","β");
-    else f.replace(reBetaInitial,"\\1β");
-        //if (f.startsWith("b"))
-        //f = "β" + f.mid(1);
-//    qDebug() << beta << f;
-/*    if (f[f.size()-1].isDigit() && (f[f.size()-2]=='s'))
+    if (!beta)
     {
-        QChar nn = f[f.size()-1];
-        f.chop(2);
-        f.append("ς");
-        // Le sigma final
-        f.append(nn);
-    }*/
+        f.replace("*b","Β");
+        f.replace("b","β");
+    }
+    else f.replace(reBetaInitial,"\\1β");
+
     for (int i=0; i<_beta.size();i++)
         f.replace(_beta[i],_uni[i]);
-//    qDebug() << beta << f;
-    return f;
+
+    return f.mid(1,f.size()-2);
 }
 
 QString MainWindow::uni2betacode(QString f)
@@ -272,6 +275,7 @@ QString MainWindow::uni2betacode(QString f)
     // Transf l'unicode en betacode
     for (int i=0; i<_beta.size();i++)
         f.replace(_uni[i],_beta[i]);
+    if (_capsButton->isChecked()) return f.toUpper();
     return f;
 }
 

@@ -20,6 +20,7 @@ private:
     QPushButton *_b2u;
     QPushButton *_u2b;
     QToolButton *_betaButton;
+    QToolButton *_capsButton;
     QToolButton *_autoName;
     QString _texte;
     bool _isCSV;
