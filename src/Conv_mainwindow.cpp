@@ -82,7 +82,7 @@ void MainWindow::createW()
     _betaButton = new QToolButton(this);
     _betaButton->setText("ϐ");
     _betaButton->setCheckable(true);
-    _betaButton->setChecked(true);
+    _betaButton->setChecked(false);
     _betaButton->setToolTip("Distinguer les beta");
 
     _capsButton = new QToolButton(this);
