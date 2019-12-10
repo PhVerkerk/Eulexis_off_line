@@ -1328,7 +1328,8 @@ void MainWindow::lemmatTxt()
                 break;
             //... Stop !
         }
-        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
+        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´")
+                || lm[i+1].startsWith("’") || lm[i+1].startsWith("᾽"))
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
             lemmatiser(mot);
@@ -1376,6 +1377,7 @@ void MainWindow::txt2csv()
     progr.setMinimumDuration(1000);
     progr.setValue(0);
     QString res;
+    int numMot = 0;
     for (i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
@@ -1387,22 +1389,67 @@ void MainWindow::txt2csv()
                 break;
             //... Stop !
         }
-        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
+        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´")
+                || lm[i+1].startsWith("’") || lm[i+1].startsWith("᾽"))
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
         {
+            numMot += 1;
             QStringList llem = __lemmatiseur->lem2csv(mot,_beta->isChecked());
             // Si j'ai passé une forme en grec avec décorations,
             // la première peut être en rouge si elle est exacte.
-            fluxL << mot << "\t";
-            if (!llem.isEmpty())
+            // fluxL << mot << "\t";
+            if (llem.isEmpty()) fluxL << numMot << "\t" << mot << "\tUnknown\n";
+            else
             {
-                if (_exact->isChecked() && llem[0].startsWith("<"))
+                if ((_exact->isChecked() && llem[0].startsWith("<")) || (llem.size() == 1))
+                {
+                    // Je n'ai que la première ligne à considérer.
                     res = llem[0];
-                else res = llem.join("\t");
+                    bool exact = res.startsWith("<<");
+                    res.remove("<");
+                    QStringList eclats = res.split("\t");
+                    // eclats[0] est la forme en grec ; les suivants sont les lemmes en BetaCode.
+                    for (int ii = 1; ii < eclats.size(); ii++)
+                    {
+                        fluxL << numMot << "\t" << mot << "\t"
+                              << __lemmatiseur->beta2unicode(eclats[ii], _beta->isChecked()) ;
+                        if (!exact) fluxL << " (" << eclats[0] << ")";
+                        // Si la forme trouvée n'est pas exactement celle du texte,
+                        // je donne la forme trouvée entre parenthèses.
+                        fluxL << "\t" << __lemmatiseur->traduction(eclats[ii]) << "\t";
+                        fluxL << eclats[ii] << "\t" << __lemmatiseur->nettoie2(eclats[ii]) << "\n";
+                    }
+                }
+                else //res = llem.join("\t");
+                {
+                    // Je dois regrouper les lemmes de chaque forme approchée.
+                    QMap<QString,QString> mapLem;
+                    for (int iii = 0; iii < llem.size(); iii++)
+                    {
+                        res = llem[iii];
+                        res.remove("<");
+                        QStringList eclats = res.split("\t");
+                        // eclats[0] est la forme en grec ; les suivants sont les lemmes en BetaCode.
+                        for (int ii = 1; ii < eclats.size(); ii++)
+                        {
+                            if (mapLem.contains(eclats[ii]))
+                                mapLem[eclats[ii]].append(", " + eclats[0]);
+                            else mapLem[eclats[ii]] = eclats[0];
+                        }
+                    }
+                    foreach (QString lem, mapLem.keys())
+                    {
+                        fluxL << numMot << "\t" << mot << "\t"
+                              << __lemmatiseur->beta2unicode(lem, _beta->isChecked()) ;
+                        fluxL << " (" << mapLem[lem] << ")";
+                        fluxL << "\t" << __lemmatiseur->traduction(lem) << "\t";
+                        fluxL << lem << "\t" << __lemmatiseur->nettoie2(lem) << "\n";
+                    }
+                }
             }
-            res.remove("<");
-            fluxL << res << "\n";
+//            res.remove("<");
+//            fluxL << res << "\n";
         }
     }
     fEntree.close();

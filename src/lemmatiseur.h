@@ -20,6 +20,7 @@ public:
     QString beta2unicode(QString f,bool beta = true);
     QString uni2betacode(QString f);
     QString nettoie(QString f);
+    QString nettoie2(QString res);
     void majLSJ(QString nom);
     void lireBailly();
     void lireLSJ();
@@ -32,6 +33,7 @@ public:
     void majAnalyses(QString nom);
     QStringList consult(QString nom, QStringList llem, QString prefix);
     void indexCommun();
+    QString traduction(QString lem);
     void setCible(int lang);
     int cible();
     void lireAnalyses();

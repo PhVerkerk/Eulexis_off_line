@@ -46,8 +46,8 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
     QString f_gr = "";
     if (!f.contains(reLettres))
     {
-        f_gr = f; // Je garde la forme grecque.
-        f = nettoie(f_gr);
+        f_gr = uni2betacode(f); // Je garde la forme grecque en Betacode.
+        f = nettoie2(f_gr);
 /*        if (!beta) f_gr.replace("ϐ","β");
         else
         {
@@ -57,7 +57,7 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
             // La forme grecque sera comparée au résultat de la conversion beta2unicode.
             // Je dois donc mettre ou enlever les beta intérieurs.
         } */
-        f_gr = uni2betacode(f_gr);
+//        f_gr = uni2betacode(f_gr);
         // Je préfère convertir la forme grecque en betacode pour éviter le pb tonos / oxia.
         // Mark de Wilde m'a signalé que l'accent grave remplace souvent l'accent aigu.
         // De fait, il n'y a que 18 accents graves dans analyses_gr, tjs sur les lemmes.
@@ -163,9 +163,9 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
     QString f_gr = "";
     if (!f.contains(reLettres))
     {
-        f_gr = f; // Je garde la forme grecque.
-        f = nettoie(f_gr);
-        f_gr = uni2betacode(f_gr);
+        f_gr = uni2betacode(f); // Je garde la forme grecque en BetaCode.
+        f = nettoie2(f_gr);
+//        f_gr = uni2betacode(f_gr);
         // Je préfère convertir la forme grecque en betacode pour éviter le pb tonos / oxia.
         // Mark de Wilde m'a signalé que l'accent grave remplace souvent l'accent aigu.
         // De fait, il n'y a que 18 accents graves dans analyses_gr, tjs sur les lemmes.
@@ -195,11 +195,12 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
         // Le premier éclat a donc un contenu différent de celui des autres.
         QString mot = ecl[0].mid(0,ecl[0].size()-1);
         // Je supprime la tabulation qui trainait.
-//        ligne = beta2unicode(mot,beta);
-        // Je préparais ma ligne de réponse avec la forme en grec.
-        // Maintenant, je n'ai besoin de rien.
-        ligne = "";
-        if (mot == f_gr) ligne = "<<";
+        ligne = beta2unicode(mot,beta) + "\t";
+        // Je prépare à nouveau ma ligne de réponse avec la forme en grec.
+        // L'idée étant que si je n'ai pas de forme exacte,
+        // je veux donner la forme approchée à côté du lemme.
+//        ligne = "";
+        if (mot == f_gr) ligne.prepend("<<");
         // Le mot est exactement le bon (avec toutes ses décorations).
         else if (f_gr.startsWith("*") && !mot.startsWith("*"))
         {
@@ -211,7 +212,7 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
                 m = m.mid(m.indexOf(reLettres));
                 m.insert(1,esprit);
             }
-            if (m == mot) ligne = "<";
+            if (m == mot) ligne.prepend("<");
             // Le mot est bon à la majuscule prêt.
         }
         for (int i = 1; i<ecl.size();i++)
@@ -225,7 +226,9 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
                 lem = e[0].section(",",1);
                 lem.remove(",");
             }
-            lem = beta2unicode(lem,beta);
+//            lem = beta2unicode(lem,beta);
+            // Il ne me semble pas utile de faire la transformation ici.
+            // S'il n'y a pas de forme exacte, le même lemme peut apparaître plusieurs fois.
             if (!ligne.contains(lem))
             {
                 ligne.append(lem);
@@ -233,6 +236,7 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
                 // Je n'ajoute le lemme que s'il n'y est pas déjà.
             }
         }
+        ligne.chop(1); // Supprime le dernier tab
         if (ligne.startsWith("<"))
         {
             // Ma ligne est exacte au moins à la majuscule près.
@@ -251,6 +255,7 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
 
 QString Lemmat::beta2unicode(QString f, bool beta)
 {
+    if (f.isEmpty()) return f;
     // Transf le betacode en unicode
     if (f.endsWith("s"))
     {
@@ -294,6 +299,24 @@ QString Lemmat::uni2betacode(QString f)
 QString Lemmat::nettoie(QString f)
 {
     QString res = uni2betacode(f);
+    // $betasignes = array("(", ")", "\\", "/", "=", "+", "|", "_", "^", "*");
+    res.remove("(");
+    res.remove(")");
+    res.remove("\\");
+    res.remove("/");
+    res.remove("=");
+    res.remove("+");
+    res.remove("|");
+    res.remove("_");
+    res.remove("^");
+    res.remove("*");
+    return res;
+}
+
+QString Lemmat::nettoie2(QString res)
+{
+    // La même que nettoie mais la forme est déjà en betacode.
+//    QString res = uni2betacode(f);
     // $betasignes = array("(", ")", "\\", "/", "=", "+", "|", "_", "^", "*");
     res.remove("(");
     res.remove(")");
@@ -1389,4 +1412,9 @@ void Lemmat::lireTraductions()
         }
     }
     fListe.close();
+}
+
+QString Lemmat::traduction(QString lem)
+{
+    return _trad[lem].section("\t",_cible,_cible);
 }
