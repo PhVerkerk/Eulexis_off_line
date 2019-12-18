@@ -173,6 +173,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         settings.setValue("repertoire",repertoire);
         settings.setValue("beta",_beta->isChecked());
         settings.setValue("exact",_exact->isChecked());
+        settings.setValue("BOM",actionBOM->isChecked());
 //        int pt = _txtEdit->font().pointSize();
         QFont font = _txtEdit->font();
         settings.setValue("zoom", font.pointSize());
@@ -233,6 +234,7 @@ void MainWindow::readSettings()
     repertoire = settings.value("repertoire",repertoire).toString();
     _beta->setChecked(settings.value("beta",true).toBool());
     _exact->setChecked(settings.value("exact",true).toBool());
+    actionBOM->setChecked(settings.value("BOM",false).toBool());
     int pt = settings.value("zoom",14).toInt();
     QString police = settings.value("police","Times New Roman").toString();
     QFont font = QFont(police,pt);
@@ -278,6 +280,10 @@ void MainWindow::createW()
     actionSauver->setObjectName(QStringLiteral("actionSauver"));
     actionTxt2csv = new QAction("Txt2csv",this);
     actionTxt2csv->setObjectName(QStringLiteral("Convertir TXT en CSV"));
+    actionBOM = new QAction("Option BOM4ms", this);
+    actionBOM->setObjectName(QStringLiteral("Option pour mettre BOM en début de fichier"));
+    actionBOM->setCheckable(true);
+    actionBOM->setChecked(false);
     exportAct = new QAction(QIcon(":res/buffer-export_pdf2.png"), tr("Exporter en pdf"), this);
     printAct = new QAction(QIcon(":res/print.svg"), tr("Im&primer"), this);
     actionA_propos = new QAction("À propos",this);
@@ -455,6 +461,7 @@ void MainWindow::createW()
     menuFichier->addAction(actionSauver);
     menuFichier->addSeparator();
     menuFichier->addAction(actionTxt2csv);
+    menuFichier->addAction(actionBOM);
     menuFichier->addSeparator();
     menuFichier->addAction(exportAct);
     menuFichier->addAction(printAct);
@@ -1271,7 +1278,7 @@ void MainWindow::lemmatAlpha()
     int i = (mots.values().size()-1) / 100;
     while (ratio < i) ratio *= 2;
     int j = 1;
-    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, mots.values().size() / ratio, _second);
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, mots.values().size() / ratio +5, _second);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -1312,7 +1319,7 @@ void MainWindow::lemmatTxt()
     int i = (lm.size()-1) / 200;
     while (ratio < i) ratio *= 2;
     int j = 1;
-    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size()-1) / ratio, _second);
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size() / ratio)+5, _second);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -1367,12 +1374,15 @@ void MainWindow::txt2csv()
     QTextStream fluxL (&fEntree);
     fluxL.setCodec("UTF-8");
 // Je suis prêt à écrire des choses dans fluxL
+    if (actionBOM->isChecked()) fluxL << "\ufeff";
+    fluxL << "Num\tForm\tLemma\tMeaning\tBetacode\tBetaWithout\n";
     QStringList lm = txt.split(QRegExp("\\b"));
     int ratio = 1;
     int i = (lm.size()-1) / 200;
     while (ratio < i) ratio *= 2;
     int j = 1;
-    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size()-1) / ratio, _second);
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size() / ratio) +5, _second);
+    // Je m'offre une marge de 5%.
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);

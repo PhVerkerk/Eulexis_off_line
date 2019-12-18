@@ -65,6 +65,7 @@ private:
     QAction *actionOuvrir;
     QAction *actionSauver;
     QAction *actionTxt2csv;
+    QAction *actionBOM;
     QAction *actionA_propos;
     QAction *actionConsulter;
     QAction *deZoomAct;
