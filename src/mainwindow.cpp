@@ -173,6 +173,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         settings.setValue("repertoire",repertoire);
         settings.setValue("beta",_beta->isChecked());
         settings.setValue("exact",_exact->isChecked());
+        settings.setValue("TextiColor",actionTextiColor->isChecked());
         settings.setValue("BOM",actionBOM->isChecked());
 //        int pt = _txtEdit->font().pointSize();
         QFont font = _txtEdit->font();
@@ -234,6 +235,7 @@ void MainWindow::readSettings()
     repertoire = settings.value("repertoire",repertoire).toString();
     _beta->setChecked(settings.value("beta",true).toBool());
     _exact->setChecked(settings.value("exact",true).toBool());
+    actionTextiColor->setChecked(settings.value("TextiColor",false).toBool());
     actionBOM->setChecked(settings.value("BOM",false).toBool());
     int pt = settings.value("zoom",14).toInt();
     QString police = settings.value("police","Times New Roman").toString();
@@ -280,7 +282,11 @@ void MainWindow::createW()
     actionSauver->setObjectName(QStringLiteral("actionSauver"));
     actionTxt2csv = new QAction("Txt2csv",this);
     actionTxt2csv->setObjectName(QStringLiteral("Convertir TXT en CSV"));
-    actionBOM = new QAction("Option BOM4ms", this);
+    actionTextiColor = new QAction("  Option TextiColor", this);
+    actionTextiColor->setObjectName(QStringLiteral("Option pour sauver le texte colorisé"));
+    actionTextiColor->setCheckable(true);
+    actionTextiColor->setChecked(false);
+    actionBOM = new QAction("  Option BOM4ms", this);
     actionBOM->setObjectName(QStringLiteral("Option pour mettre BOM en début de fichier"));
     actionBOM->setCheckable(true);
     actionBOM->setChecked(false);
@@ -461,6 +467,7 @@ void MainWindow::createW()
     menuFichier->addAction(actionSauver);
     menuFichier->addSeparator();
     menuFichier->addAction(actionTxt2csv);
+    menuFichier->addAction(actionTextiColor);
     menuFichier->addAction(actionBOM);
     menuFichier->addSeparator();
     menuFichier->addAction(exportAct);
@@ -1357,6 +1364,10 @@ void MainWindow::txt2csv()
     QString nomFichier =
             QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt)");
     if (nomFichier.isEmpty()) return;
+    bool beta = _beta->isChecked();
+    bool ex = _exact->isChecked();
+    // Plutôt que de tester ces boutons à chaque mot,
+    // je définis des booléens locaux.
     repertoire = QFileInfo (nomFichier).absolutePath ();
     QString txt;
     QFile fEntree (nomFichier);
@@ -1377,6 +1388,7 @@ void MainWindow::txt2csv()
     if (actionBOM->isChecked()) fluxL << "\ufeff";
     fluxL << "Num\tForm\tLemma\tMeaning\tBetacode\tBetaWithout\n";
     QStringList lm = txt.split(QRegExp("\\b"));
+    // lm est la liste des mots avec les séparateurs.
     int ratio = 1;
     int i = (lm.size()-1) / 200;
     while (ratio < i) ratio *= 2;
@@ -1390,6 +1402,9 @@ void MainWindow::txt2csv()
     int numMot = 0;
     for (i = 1; i < lm.size(); i+=2)
     {
+        // Les éléments impairs sont les mots.
+        // Avant et après l'élément impair lm[i],
+        // j'ai les deux séparateurs : je vais y mettre la mise en forme.
         QString mot = lm[i];
         if (j * ratio < i)
         {
@@ -1405,18 +1420,30 @@ void MainWindow::txt2csv()
         if (!mot.contains(QRegExp("\\d")))
         {
             numMot += 1;
-            QStringList llem = __lemmatiseur->lem2csv(mot,_beta->isChecked());
+            QStringList llem = __lemmatiseur->lem2csv(mot,beta);
             // Si j'ai passé une forme en grec avec décorations,
             // la première peut être en rouge si elle est exacte.
             // fluxL << mot << "\t";
-            if (llem.isEmpty()) fluxL << numMot << "\t" << mot << "\tUnknown\n";
+            if (llem.isEmpty())
+            {
+                fluxL << numMot << "\t" << mot << "\tUnknown\n";
+                // Le mot est inconnu : en rouge et en gras !
+                lm[i+1].prepend("</font></b>");
+                lm[i-1].append("<b><font color=\"red\">");
+            }
             else
             {
-                if ((_exact->isChecked() && llem[0].startsWith("<")) || (llem.size() == 1))
+                if (ex && llem[0].startsWith("<"))
                 {
                     // Je n'ai que la première ligne à considérer.
                     res = llem[0];
                     bool exact = res.startsWith("<<");
+                    if (!exact)
+                    {
+                        // Le mot est connu à la majuscule près : en gras !
+                        lm[i+1].prepend("</b>");
+                        lm[i-1].append("<b>");
+                    }
                     res.remove("<");
                     QStringList eclats = res.split("\t");
                     // eclats[0] est la forme en grec ; les suivants sont les lemmes en BetaCode.
@@ -1433,6 +1460,10 @@ void MainWindow::txt2csv()
                 }
                 else //res = llem.join("\t");
                 {
+                    // Il y a des solutions aux diacritiques près :
+                    // en bleu et en gras !
+                    lm[i+1].prepend("</font></b>");
+                    lm[i-1].append("<b><font color=\"blue\">");
                     // Je dois regrouper les lemmes de chaque forme approchée.
                     QMap<QString,QString> mapLem;
                     for (int iii = 0; iii < llem.size(); iii++)
@@ -1463,6 +1494,38 @@ void MainWindow::txt2csv()
         }
     }
     fEntree.close();
+    // J'en ai fini avec la création du CSV,
+    // mais en cours de route, j'ai modifié la liste de mots.
+    if (actionTextiColor->isChecked())
+    {
+        // L'option TextiColor est active : je sauve un fichier html.
+        nomFichier.replace(".csv",".htm");
+        qDebug() << nomFichier;
+        fEntree.setFileName(nomFichier);
+        fEntree.open (QFile::WriteOnly | QFile::Text);
+//        QTextStream fluxL (&fEntree);
+//        fluxL.setCodec("UTF-8");
+        // fluxL est déjà défini.
+        fluxL << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n"
+              << "<html>\n<head>\n"
+              << "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n"
+              << "<title>TextiColor by Eulexis</title>\n"
+              << "<meta name=\"generator\" content=\"Eulexis (MacOSX)\"/>\n"
+              << "<meta name=\"author\" content=\"Philippe \"/>\n"
+              << "</head>\n<body>\n<p>";
+        // Fin de l'entête HTML
+        for (int i=0; i< lm.size() ; i++)
+        {
+            QString s = lm[i];
+            s.replace("\n","</p>\n<p>");
+            // Pour que les paragraphes restent des paragraphes.
+            s.replace("</b> <b>"," ");
+            // Si j'ai deux mots en gras de suite, je peux supprimer les balises.
+            fluxL << s;
+        }
+        fluxL << "</p>\n</body></html>\n";
+        fEntree.close();
+    }
 }
 
 void MainWindow::lAlld()
