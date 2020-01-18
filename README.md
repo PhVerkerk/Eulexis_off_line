@@ -23,9 +23,9 @@ This _txt2csv_ tool has two extra options :
        - TextiColor
 
        - BOM4ms, this option adds a Byte Order Marker 
-(Unicode pseudo-character) at the beginning of the CSV-file
-to facilitate some microsoft products to understand
-that the character encoding is UTF-8.
+       (Unicode pseudo-character) at the beginning of the CSV-file
+       to facilitate some microsoft products to understand
+       that the character encoding is UTF-8.
 
 ### Vocab-list
 The CSV-file produced by _txt2csv_ is a *first step*
