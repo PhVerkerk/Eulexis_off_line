@@ -1429,7 +1429,6 @@ void MainWindow::txt2csv()
             {
                 // C'est une élision non répertoriée : je peux essayer les 7 voyelles.
                 // Un des problèmes est qu'il faudrait signaler ces tentatives.
-                ex = false;
                 mot.chop(1);
                 llem = __lemmatiseur->lem2csv(mot + "α",beta);
                 llem.append(__lemmatiseur->lem2csv(mot + "ε",beta));
@@ -1438,9 +1437,8 @@ void MainWindow::txt2csv()
                 llem.append(__lemmatiseur->lem2csv(mot + "ο",beta));
                 llem.append(__lemmatiseur->lem2csv(mot + "υ",beta));
                 llem.append(__lemmatiseur->lem2csv(mot + "ω",beta));
+                if (!llem.isEmpty()) llem[0].remove("<");
             }
-            else ex = _exact->isChecked();
-            // Quand ce n'est pas une élision, je reprends la valeur du bouton.
             if (llem.isEmpty())
             {
                 fluxL << numMot << "\t" << mot << "\tUnknown\n";
@@ -1480,8 +1478,9 @@ void MainWindow::txt2csv()
                     // Il y a des solutions aux diacritiques près :
                     // en bleu et en gras !
                     lm[i+1].prepend("</font></b>");
-                    if (ex) lm[i-1].append("<b><font color=\"blue\">");
-                    else lm[i-1].append("<b><font color=\"green\">");
+                    lm[i-1].append("<b><font color=\"blue\">");
+//                    if (ex) lm[i-1].append("<b><font color=\"blue\">");
+//                    else lm[i-1].append("<b><font color=\"green\">");
                     // Je mets le mot en vert si c'est une tentative de restitution d'élision.
                     // Je dois regrouper les lemmes de chaque forme approchée.
                     QMap<QString,QString> mapLem;
