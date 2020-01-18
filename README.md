@@ -19,7 +19,9 @@ it will be overwritten without warning.
 text-window and to lemmatize it.
 
 This _txt2csv_ tool has two extra options :
+
        - TextiColor
+
        - BOM4ms, this option adds a Byte Order Marker 
 (Unicode pseudo-character) at the beginning of the CSV-file
 to facilitate some microsoft products to understand
@@ -41,11 +43,17 @@ it will appear in as many lines as needed.
 A line is formed of 6 fields, separated by a *tab*
 (some will call it a TSV, but it remains a Character
 Separated Values format). The fields are :
+
       - a number that reflects the rank of the word in the text
+
       - the form as it is in the text
+
       - the associated lemma in Greek characters
+
       - a short translation
+
       - the lemma in betacode
+
       - the lemma in betacode without the diacritics.
 
 ### TextiColor and OCR correction
@@ -63,8 +71,11 @@ These words are written in *bold*, and they
 correspond to forms that have not been fully recognized
 by the lemmatizer. 
 The _gravity_ of the problem is encoded in the color.
+
        - *red* : the form is unknown
+
        - *blue* : there are some discrepancies in the diacritics
+
        - *black* : the uppercase was unexpected.
 
 The .htm file (which can be easily converted to an .odt file for editing)
