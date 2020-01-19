@@ -95,11 +95,18 @@ void EditLatin::mouseReleaseEvent(QMouseEvent *e)
     QString st = cursor.selectedText();
     if (!st.isEmpty())
     {
-        if (st.endsWith("·") || st.endsWith("·"))
+/*        if (st.endsWith("·") || st.endsWith("·")
+                || st.endsWith("\u0375") || st.endsWith("\u037e"))
             st.chop(1);
-        st.replace("’","'");
-        st.replace("´","'");
-        mainwindow->lemmatiser(st);
+            */
+        st.replace(mainwindow->_reApostr,"'");
+        QStringList lm = st.split(mainwindow->_reWordBoundary);
+        if (lm.size() > 2)
+        {
+            st = lm[1];
+            if (lm[2].startsWith("'")) st.append("'");
+            mainwindow->lemmatiser(st);
+        }
     }
     QTextEdit::mouseReleaseEvent(e);
 }
@@ -113,9 +120,9 @@ MainWindow::MainWindow(QWidget *parent)
     createTrois();
     connecter();
     _lineEdit->setFocus();
-    _msg << "%1 : word not found !";
-    _msg << "%1 : mot non trouvé !";
-    _msg << "%1 : Wort nicht gefunden !";
+    _msg << "%1 : word not found !\n<br/>";
+    _msg << "%1 : mot non trouvé !\n<br/>";
+    _msg << "%1 : Wort nicht gefunden !\n<br/>";
     _changements = false;
     _apostrophes = "'´΄’᾽";
     if (QFile::exists(_rscrDir + "apostrophes.txt"))
@@ -129,6 +136,7 @@ MainWindow::MainWindow(QWidget *parent)
         fin.close();
     }
     _reApostr = QRegExp("["+_apostrophes+"]");
+    _reWordBoundary = QRegExp("\\b");
 //    qDebug() << _apostrophes.size() << _apostrophes;
     readSettings();
 //    _second->show();
@@ -806,6 +814,7 @@ void MainWindow::nouveau()
         _second->show();
         yeux->setChecked(true);
     }
+    _second->raise();
 }
 
 void MainWindow::ouvrir()
@@ -855,7 +864,9 @@ void MainWindow::sauver(QString nomFichier)
         QFile f(nomFichier);
         if (f.open(QFile::WriteOnly))
         {
-            QString txt = _texte->toPlainText();
+//            QString txt = _texte->toPlainText();
+            QString txt = _texte->toHtml();
+            // Si je mets des couleurs avec TextiColor...
             f.write(txt.toUtf8());
             txt = "\n<--- Eulexis !?./ --->\n";
             f.write(txt.toUtf8());
@@ -966,15 +977,26 @@ void MainWindow::consulter(QString f)
 
 QString MainWindow::bulle(QString mot)
 {
-    if (mot.endsWith("·") || mot.endsWith("·"))
+    // mot a été sélectionné par QTextCursor::WordUnderCursor
+    // et je ne sais pas trop bien ce qui définit le mot.
+    // Je me demande si je ne devrais pas appliquer
+    // la bonne vieille méthode avec _reWordBoundary...
+/*    if (mot.endsWith("·") || mot.endsWith("·")
+            || mot.endsWith("\u0375") || mot.endsWith("\u037e"))
         mot.chop(1);
+    // Quelques séparateurs grecs...
 //    if (mot.endsWith("´"))
-        mot.replace(_reApostr,"'");
+*/
+    mot.replace(_reApostr,"'");
+    QStringList lm = mot.split(_reWordBoundary);
+    if (lm.size() < 3) return _msg[_lang].arg(mot);
+    mot = lm[1];
+    if (lm[2].startsWith("'")) mot.append("'");
     QStringList llem = __lemmatiseur->lemmatise(mot,_beta->isChecked());
     // Si j'ai passé une forme en grec avec décorations,
     // la première peut être en rouge si elle est exacte.
     QString res = "";
-    if (llem.isEmpty()) res = "Mot inconnu !";
+    if (llem.isEmpty()) res = _msg[_lang].arg(mot);
     else
     {
         res = "<ul>\n<li>";
@@ -1004,7 +1026,7 @@ void MainWindow::lemmatiser(QString f)
     QString res = "<h4>";
     if (vide) res.append(_lemmatiser->text());
     else res.append(f);
-    if (llem.isEmpty()) res.append("</h4> : Not found !\n<br/>");
+    if (llem.isEmpty()) res.append("</h4> " + _msg[_lang].arg(f));
     else
     {
         res.append("</h4><ul>\n<li>");
@@ -1284,7 +1306,7 @@ void MainWindow::lemmatAlpha()
     _lemEdit->clear();
     QString res;
     QString texteHTML = "";
-    QStringList lm = txt.split(QRegExp("\\b"));
+    QStringList lm = txt.split(_reWordBoundary);
 //    QStringList mots;
     QMultiMap<QString,QString> mots;
     // QMultiMap car deux mots différents peuvent avoir la même forme sans décoration.
@@ -1320,7 +1342,7 @@ void MainWindow::lemmatAlpha()
         // Si j'ai passé une forme en grec avec décorations,
         // la première peut être en rouge si elle est exacte.
         res = "<h4>" + mot;
-        if (llem.isEmpty()) res.append("</h4> : Not found !\n<br/>");
+        if (llem.isEmpty()) res.append("</h4> " + _msg[_lang].arg(mot));
         else
         {
             res.append("</h4><ul>\n<li>");
@@ -1360,7 +1382,9 @@ void MainWindow::lemmatTxt()
     _lemEdit->clear();
     QString res;
     QString texteHTML = "";
-    QStringList lm = txt.split(QRegExp("\\b"));
+    bool bet = _beta->isChecked();
+    bool ex = _exact->isChecked();
+    QStringList lm = txt.split(_reWordBoundary);
     int ratio = 1;
     int i = (lm.size()-1) / 200;
     while (ratio < i) ratio *= 2;
@@ -1393,17 +1417,35 @@ void MainWindow::lemmatTxt()
             // car il insère les lemmatisations une à une à la fin de _lemEdit.
             // Il est bien plus malin de construire l'ensemble
             // des lemmatisations en HTML et de le balancer à la fin.
-            QStringList llem = __lemmatiseur->lemmatise(mot,_beta->isChecked());
+            QStringList llem = __lemmatiseur->lemmatise(mot,bet);
             // Si j'ai passé une forme en grec avec décorations,
             // la première peut être en rouge si elle est exacte.
             res = "<h4>" + mot;
-            if (llem.isEmpty()) res.append("</h4> : Not found !\n<br/>");
+            if (llem.isEmpty())
+            {
+                res.append("</h4> " + _msg[_lang].arg(mot));
+                // Le mot est inconnu : en rouge et en gras !
+                lm[i+1].prepend("</font></b>");
+                lm[i-1].append("<b><font color=\"red\">");
+            }
             else
             {
                 res.append("</h4><ul>\n<li>");
-                if (_exact->isChecked() && llem[0].startsWith("<span"))
+                if (ex && llem[0].startsWith("<span"))
+                {
                     res.append(llem[0]);
-                else res.append(llem.join("</li>\n<li>"));
+                    if (llem[0].contains("color:orange"))
+                    {
+                        lm[i+1].prepend("</b>");
+                        lm[i-1].append("<b>");
+                    }
+                }
+                else
+                {
+                    res.append(llem.join("</li>\n<li>"));
+                    lm[i+1].prepend("</font></b>");
+                    lm[i-1].append("<b><font color=\"blue\">");
+                }
                 res.append("</li></ul>\n<br/>");
             }
             texteHTML.append(res);
@@ -1417,6 +1459,13 @@ void MainWindow::lemmatTxt()
     }
     _trois->setUpdatesEnabled(true);
     _trois->repaint();
+    if (ex && actionTextiColor->isChecked())
+    {
+        // Je recompose le texte avec des couleurs.
+        texteHTML = lm.join("");
+        texteHTML.replace("\n","\n<br/>");
+        _texte->setHtml(texteHTML);
+    }
 //    _blabla->setText("");
 //    QApplication::restoreOverrideCursor();
 }
@@ -1449,7 +1498,8 @@ void MainWindow::txt2csv()
 // Je suis prêt à écrire des choses dans fluxL
     if (actionBOM->isChecked()) fluxL << "\ufeff";
     fluxL << "Num\tForm\tLemma\tMeaning\tBetacode\tBetaWithout\n";
-    QStringList lm = txt.split(QRegExp("\\b"));
+
+    QStringList lm = txt.split(_reWordBoundary);
     // lm est la liste des mots avec les séparateurs.
     int ratio = 1;
     int i = (lm.size()-1) / 200;
@@ -1611,16 +1661,19 @@ void MainWindow::txt2csv()
 void MainWindow::lAlld()
 {
     __lemmatiseur->setCible(2);
+    _lang = 2;
 }
 
 void MainWindow::lAngl()
 {
     __lemmatiseur->setCible(0);
+    _lang = 0;
 }
 
 void MainWindow::lFr()
 {
     __lemmatiseur->setCible(1);
+    _lang = 1;
 }
 
 void MainWindow::avCons()
