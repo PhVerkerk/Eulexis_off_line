@@ -1,0 +1,11 @@
+'´΄’᾽´
+! Ensemble des caractères reconnus comme apostrophe.
+! Seule la première ligne est lue et sera convertie en RegExp.
+! Si un texte grec contient beaucoup d'élisions non-reconnues,
+! il faut peut-être voir si l'apostrophe utilisée n'est pas dans cette liste.
+! Initialement, l'apostrophe (U+0027)
+! acute accent (U+00B4)
+! Greek tonos (U+0384)
+! right single quotation mark (U+2019)
+! Greek koronis (U+1FBD)
+! Greek oxia (U+1FFD)
