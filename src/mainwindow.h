@@ -37,6 +37,7 @@ public:
     ~MainWindow();
     void loadLemm();
     QString bulle(QString mot);
+    QRegExp _reApostr;
 
 private:
     QStatusBar * _statusB;
@@ -127,6 +128,7 @@ private:
     QString repertoire;
     bool plusPetit(QString g1, QString g2);
     bool longs(QStringList sl);
+    QString _apostrophes;
 
 private slots:
     void exportPdf();

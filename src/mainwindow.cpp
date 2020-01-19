@@ -51,12 +51,14 @@ bool EditLatin::event(QEvent *event)
 //                qDebug() << mot;
 //                return true;
             }
+/* Je déplace ce morceau dans bulle()
             if (mot.endsWith("·") || mot.endsWith("·"))
                 mot.chop(1);
             if (mot.endsWith("´"))
                 mot.replace("´","'");
             if (mot.endsWith("’"))
                 mot.replace("’","'");
+                */
             QString txtBulle = mainwindow->bulle(mot);
             if (!txtBulle.isEmpty())
             {
@@ -115,6 +117,19 @@ MainWindow::MainWindow(QWidget *parent)
     _msg << "%1 : mot non trouvé !";
     _msg << "%1 : Wort nicht gefunden !";
     _changements = false;
+    _apostrophes = "'´΄’᾽";
+    if (QFile::exists(_rscrDir + "apostrophes.txt"))
+    {
+        // Si le fichier existe, sa première ligne est l'ensemble des signes pouvant servir d'apostrophe.
+        QFile fin(_rscrDir + "apostrophes.txt");
+        fin.open(QIODevice::ReadOnly|QIODevice::Text);
+        QByteArray ba = fin.readLine();
+        _apostrophes = QString::fromUtf8(ba); // Ça devrait marcher aussi sur PC.
+        _apostrophes.chop(1); // Le \n reste à la fin.
+        fin.close();
+    }
+    _reApostr = QRegExp("["+_apostrophes+"]");
+//    qDebug() << _apostrophes.size() << _apostrophes;
     readSettings();
 //    _second->show();
 }
@@ -951,6 +966,10 @@ void MainWindow::consulter(QString f)
 
 QString MainWindow::bulle(QString mot)
 {
+    if (mot.endsWith("·") || mot.endsWith("·"))
+        mot.chop(1);
+//    if (mot.endsWith("´"))
+        mot.replace(_reApostr,"'");
     QStringList llem = __lemmatiseur->lemmatise(mot,_beta->isChecked());
     // Si j'ai passé une forme en grec avec décorations,
     // la première peut être en rouge si elle est exacte.
@@ -1270,7 +1289,8 @@ void MainWindow::lemmatAlpha()
     for (int i = 1; i < lm.size(); i+=2)
     {
         QString mot = lm[i];
-        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("’"))
+//        if (lm[i+1].startsWith(_reApostr))
+        if (lm[i+1].indexOf(_reApostr) == 0)
             mot.append("'");
         QString motNu = __lemmatiseur->beta2unicode(__lemmatiseur->nettoie(mot));
         if (!mot.contains(QRegExp("\\d")) && !mots.values().contains(mot))
@@ -1342,8 +1362,10 @@ void MainWindow::lemmatTxt()
                 break;
             //... Stop !
         }
-        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´")
-                || lm[i+1].startsWith("’") || lm[i+1].startsWith("᾽"))
+//        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("΄")
+  //              || lm[i+1].startsWith("’") || lm[i+1].startsWith("᾽"))
+//        if (lm[i+1].startsWith(_reApostr))
+        if (lm[i+1].indexOf(_reApostr) == 0)
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
             lemmatiser(mot);
@@ -1415,8 +1437,8 @@ void MainWindow::txt2csv()
             //... Stop !
         }
         // ΄
-        if (lm[i+1].startsWith("'") || lm[i+1].startsWith("´") || lm[i+1].startsWith("΄")
-                || lm[i+1].startsWith("’") || lm[i+1].startsWith("᾽"))
+//        if (lm[i+1].startsWith(_reApostr))
+        if (lm[i+1].indexOf(_reApostr) == 0)
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
         {
@@ -1518,7 +1540,7 @@ void MainWindow::txt2csv()
     {
         // L'option TextiColor est active : je sauve un fichier html.
         nomFichier.replace(".csv",".htm");
-        qDebug() << nomFichier;
+//        qDebug() << nomFichier;
         fEntree.setFileName(nomFichier);
         fEntree.open (QFile::WriteOnly | QFile::Text);
 //        QTextStream fluxL (&fEntree);
