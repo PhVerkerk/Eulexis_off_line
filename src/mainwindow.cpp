@@ -1282,6 +1282,8 @@ void MainWindow::lemmatAlpha()
     QString txt = _texte->toPlainText();
     if (txt.isEmpty()) return;
     _lemEdit->clear();
+    QString res;
+    QString texteHTML = "";
     QStringList lm = txt.split(QRegExp("\\b"));
 //    QStringList mots;
     QMultiMap<QString,QString> mots;
@@ -1313,7 +1315,21 @@ void MainWindow::lemmatAlpha()
     i = 0;
     foreach (QString mot, mots.values())
     {
-        lemmatiser(mot);
+//        lemmatiser(mot);
+        QStringList llem = __lemmatiseur->lemmatise(mot,_beta->isChecked());
+        // Si j'ai passé une forme en grec avec décorations,
+        // la première peut être en rouge si elle est exacte.
+        res = "<h4>" + mot;
+        if (llem.isEmpty()) res.append("</h4> : Not found !\n<br/>");
+        else
+        {
+            res.append("</h4><ul>\n<li>");
+            if (_exact->isChecked() && llem[0].startsWith("<span"))
+                res.append(llem[0]);
+            else res.append(llem.join("</li>\n<li>"));
+            res.append("</li></ul>\n<br/>");
+        }
+        texteHTML.append(res);
         i++; // Uniquement pour la barre de progression.
         if (j * ratio < i)
         {
@@ -1324,6 +1340,7 @@ void MainWindow::lemmatAlpha()
             //... Stop !
         }
     }
+    _lemEdit->setHtml(texteHTML);
     if (!_trois->isVisible())
     {
         _trois->show();
@@ -1341,6 +1358,8 @@ void MainWindow::lemmatTxt()
     QString txt = _texte->toPlainText();
     if (txt.isEmpty()) return;
     _lemEdit->clear();
+    QString res;
+    QString texteHTML = "";
     QStringList lm = txt.split(QRegExp("\\b"));
     int ratio = 1;
     int i = (lm.size()-1) / 200;
@@ -1368,8 +1387,29 @@ void MainWindow::lemmatTxt()
         if (lm[i+1].indexOf(_reApostr) == 0)
             mot.append("'");
         if (!mot.contains(QRegExp("\\d")))
-            lemmatiser(mot);
+        {
+            // lemmatiser(mot);
+            // J'utilisais lemmatiser(mot), mais c'est absurde
+            // car il insère les lemmatisations une à une à la fin de _lemEdit.
+            // Il est bien plus malin de construire l'ensemble
+            // des lemmatisations en HTML et de le balancer à la fin.
+            QStringList llem = __lemmatiseur->lemmatise(mot,_beta->isChecked());
+            // Si j'ai passé une forme en grec avec décorations,
+            // la première peut être en rouge si elle est exacte.
+            res = "<h4>" + mot;
+            if (llem.isEmpty()) res.append("</h4> : Not found !\n<br/>");
+            else
+            {
+                res.append("</h4><ul>\n<li>");
+                if (_exact->isChecked() && llem[0].startsWith("<span"))
+                    res.append(llem[0]);
+                else res.append(llem.join("</li>\n<li>"));
+                res.append("</li></ul>\n<br/>");
+            }
+            texteHTML.append(res);
+        }
     }
+    _lemEdit->setHtml(texteHTML);
     if (!_trois->isVisible())
     {
         _trois->show();
