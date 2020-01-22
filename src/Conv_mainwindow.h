@@ -19,6 +19,7 @@ private:
     QTextBrowser *_txtEdit;
     QPushButton *_b2u;
     QPushButton *_u2b;
+    QPushButton *_norm;
     QToolButton *_betaButton;
     QToolButton *_capsButton;
     QToolButton *_autoName;
@@ -28,6 +29,7 @@ private:
     QAction *quitAct;
     QAction *actionB2U;
     QAction *actionU2B;
+    QAction *actionNorm;
     QAction *actionA_propos;
     QAction *betaAct;
 
@@ -72,6 +74,7 @@ private slots:
 
     void bet2uni();
     void uni2bet();
+    void normalise();
 
     void annuleDial();
     void fermeDial();

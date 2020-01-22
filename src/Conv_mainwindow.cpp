@@ -63,6 +63,8 @@ void MainWindow::createW()
     actionB2U->setObjectName(QStringLiteral("Beta2Uni"));
     actionU2B = new QAction("Uni2Beta",this);
     actionU2B->setObjectName(QStringLiteral("Uni2Beta"));
+    actionNorm = new QAction("Normalise",this);
+    actionNorm->setObjectName(QStringLiteral("Normalise"));
     actionA_propos = new QAction("À propos",this);
     actionA_propos->setObjectName(QStringLiteral("actionA_propos"));
     quitAct = new QAction(QIcon(":/res/power.svg"), tr("&Quitter"), this);
@@ -71,13 +73,18 @@ void MainWindow::createW()
         QKeySequence(tr("Ctrl+Q")));  // QKeySequence::Quit inopérant
 
     _b2u = new QPushButton("Betacode to Unicode",this);
-    _b2u->setMinimumWidth(250);
+    _b2u->setMinimumWidth(150);
     _b2u->setMaximumWidth(250);
     _b2u->setToolTip("Convert a file from Betacode to UTF-8");
     _u2b = new QPushButton("Unicode to Betacode",this);
-    _u2b->setMinimumWidth(250);
+    _u2b->setMinimumWidth(150);
     _u2b->setMaximumWidth(250);
     _u2b->setToolTip("Convert a file from UTF-8 to Betacode");
+
+    _norm = new QPushButton("Normalise Unicode",this);
+    _norm->setMinimumWidth(150);
+    _norm->setMaximumWidth(250);
+    _norm->setToolTip("Normalise the unicode content of a file");
 
     _betaButton = new QToolButton(this);
     _betaButton->setText("ϐ");
@@ -111,6 +118,8 @@ void MainWindow::createW()
     mainToolBar->addWidget(_b2u);
     mainToolBar->addWidget(_u2b);
     mainToolBar->addSeparator();
+    mainToolBar->addWidget(_norm);
+    mainToolBar->addSeparator();
     mainToolBar->addWidget(_autoName);
     mainToolBar->addSeparator();
     mainToolBar->addWidget(_betaButton);
@@ -121,6 +130,8 @@ void MainWindow::createW()
     menuBar->addAction(menuFichier->menuAction());
     menuFichier->addAction(actionB2U);
     menuFichier->addAction(actionU2B);
+    menuFichier->addSeparator();
+    menuFichier->addAction(actionNorm);
     menuFichier->addSeparator();
     menuFichier->addAction(actionA_propos);
     menuFichier->addSeparator();
@@ -176,8 +187,10 @@ void MainWindow::connecter()
 
     connect(actionB2U, SIGNAL(triggered()), this, SLOT(bet2uni()));
     connect(actionU2B, SIGNAL(triggered()), this, SLOT(uni2bet()));
+    connect(actionNorm, SIGNAL(triggered()), this, SLOT(normalise()));
     connect(_b2u, SIGNAL(clicked()), this, SLOT(bet2uni()));
     connect(_u2b, SIGNAL(clicked()), this, SLOT(uni2bet()));
+    connect(_norm, SIGNAL(clicked()), this, SLOT(normalise()));
     connect(actionA_propos, SIGNAL(triggered()), this, SLOT(aPropos()));
     connect(quitAct, SIGNAL(triggered()), this, SLOT(close()));
 
@@ -349,6 +362,31 @@ void MainWindow::uni2bet()
                     colonnes[valeurs[j]] =
                             uni2betacode(colonnes[valeurs[j]]);
             lignes[i] = colonnes.join(sep);
+        }
+        _texte = lignes.join("\n");
+    }
+    if (_autoName->isChecked())
+        sauver(repertoire + "/" + nom + "_conv");
+    else sauver();
+    _txtEdit->append("Done !\n");
+}
+
+void MainWindow::normalise()
+{
+    ouvrir();
+    if (!_isCSV || (_texte.size() < 300000))
+    {
+        _txtEdit->append("Normalisation of Unicode.\n");
+        _texte = _texte.normalized(QString::NormalizationForm_C);
+    }
+    else
+    {
+        // Pour les gros fichiers, je traite chaque ligne.
+        _txtEdit->append("Normalisation of Unicode, line by line.\n");
+        QStringList lignes = _texte.split("\n");
+        for (int i=0 ; i<lignes.size() ; i++)
+        {
+            lignes[i] = lignes[i].normalized(QString::NormalizationForm_C);
         }
         _texte = lignes.join("\n");
     }

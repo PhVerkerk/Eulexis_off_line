@@ -86,6 +86,7 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
         QStringList ecl = ligne.split("{");
         QString mot = ecl[0].mid(0,ecl[0].size()-1);
         ligne = beta2unicode(mot,beta);
+//        qDebug() << mot << f_gr << (mot == f_gr);
         if (mot == f_gr)
         {
             ligne.prepend("<span style='color:red'>");
