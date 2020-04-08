@@ -99,6 +99,7 @@ private:
     QAction *findAct;
     QAction *reFindAct;
     QAction *auxAct;
+    QAction *toolsRestoreAct;
 
     QMenuBar *menuBar;
     QMenu *menuFichier;
@@ -170,6 +171,8 @@ private slots:
     void chercher();
     void rechercher();
     void auxilium();
+
+    void toolsRestore ();
 
 public slots:
     void lemmatiser(QString f = "");

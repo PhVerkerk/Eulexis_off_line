@@ -115,12 +115,14 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
             e[1].remove("}");
             QString forme = beta2unicode(e[0],beta);
             QString lem = e[0];
+            // Tester si lem se termine avec un numéro d'homonymie.
             QString ff = forme;
             if (forme.contains(","))
             {
                 ff = forme.section(",",0,0);
                 lem = e[0].section(",",1);
                 lem.remove(",");
+                // Tester si lem se termine avec un numéro d'homonymie.
                 forme.replace("σ,","ς,");
                 forme.replace(",",", <a href='http://aller/" + lem + "'>");
             }

@@ -426,7 +426,9 @@ void MainWindow::createW()
 //    QToolButton *tbDicLitt = new QToolButton(this);
 //    tbDicLitt->setDefaultAction(actionConsulter);
 
-
+    // Restauration de la barre d'outils
+    toolsRestoreAct = new QAction(tr("Restaurer les outils"),this);
+    connect(toolsRestoreAct, SIGNAL(triggered()), this, SLOT(toolsRestore()));
 
     menuBar = new QMenuBar(this);
     menuBar->setObjectName(QStringLiteral("menuBar"));
@@ -478,6 +480,8 @@ void MainWindow::createW()
     mainToolBar->addAction(auxAct);
     mainToolBar->addSeparator();
     mainToolBar->addAction(quitAct);
+    mainToolBar->setFloatable(false);
+    mainToolBar->setMovable(false);
 
     menuBar->addAction(menuFichier->menuAction());
     menuBar->addAction(menuEdition->menuAction());
@@ -531,6 +535,8 @@ void MainWindow::createW()
     menuFenetre->addAction(fenCons);
     menuFenetre->addAction(fenLem);
     menuFenetre->addAction(fenTxt);
+    menuFenetre->addSeparator();
+    menuFenetre->addAction(toolsRestoreAct);
 
     menuExtra->addAction(actAnalyses);
     menuExtra->addAction(actTrad);
@@ -1178,6 +1184,8 @@ void MainWindow::suivreLien(QUrl url)
         lien = lien.mid(13);
         lien.replace("%7C","|");
 //        qDebug() << lien << __lemmatiseur->beta2unicode(lien,false);
+        QChar ch = lien[lien.size()-1];
+        if (ch.category() == QChar::Number_DecimalDigit) lien.chop(1);
         consulter(__lemmatiseur->beta2unicode(lien,false));
     }
     // Normalement, c'est un # pour aller à une ancre.
@@ -1497,7 +1505,7 @@ void MainWindow::txt2csv()
     fluxL.setCodec("UTF-8");
 // Je suis prêt à écrire des choses dans fluxL
     if (actionBOM->isChecked()) fluxL << "\ufeff";
-    fluxL << "Num\tForm\tLemma\tMeaning\tBetacode\tBetaWithout\n";
+    fluxL << "Att\tSeq\tLine\tNumW\tForm\tLemma\tMeaning\tBetacode\tBetaWithout\n";
 
     QStringList lm = txt.split(_reWordBoundary);
     // lm est la liste des mots avec les séparateurs.
@@ -1512,6 +1520,8 @@ void MainWindow::txt2csv()
     progr.setValue(0);
     QString res;
     int numMot = 0;
+    int numLigne = 1;
+    int nEl = 1;
     for (i = 1; i < lm.size(); i+=2)
     {
         // Les éléments impairs sont les mots.
@@ -1528,9 +1538,16 @@ void MainWindow::txt2csv()
         }
         // ΄
 //        if (lm[i+1].startsWith(_reApostr))
+        if ((i > 1) && lm[i-1].contains("\n")) numLigne +=1;
         if (lm[i+1].indexOf(_reApostr) == 0)
             mot.append("'");
-        if (!mot.contains(QRegExp("\\d")))
+        if (mot.contains(QRegExp("\\d")))
+        {
+            fluxL << "\t" << nEl << "\t\t\t" << mot << "\n";
+            // Si j'ai un nombre, je le mets dans la liste sans y toucher.
+            nEl += 1;
+        }
+        else
         {
             numMot += 1;
             QStringList llem = __lemmatiseur->lem2csv(mot,beta);
@@ -1553,7 +1570,8 @@ void MainWindow::txt2csv()
             }
             if (llem.isEmpty())
             {
-                fluxL << numMot << "\t" << mot << "\tUnknown\n";
+                fluxL << "*\t" << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\tUnknown\n";
+                nEl += 1;
                 // Le mot est inconnu : en rouge et en gras !
                 lm[i+1].prepend("</font></b>");
                 lm[i-1].append("<b><font color=\"red\">");
@@ -1574,15 +1592,19 @@ void MainWindow::txt2csv()
                     res.remove("<");
                     QStringList eclats = res.split("\t");
                     // eclats[0] est la forme en grec ; les suivants sont les lemmes en BetaCode.
-                    for (int ii = 1; ii < eclats.size(); ii++)
+                    int taille = eclats.size();
+                    for (int ii = 1; ii < taille; ii++)
                     {
-                        fluxL << numMot << "\t" << mot << "\t"
+                        if (taille > 2) fluxL << "*\t";
+                        else fluxL << "\t";
+                        fluxL << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\t"
                               << __lemmatiseur->beta2unicode(eclats[ii], _beta->isChecked()) ;
                         if (!exact) fluxL << " (" << eclats[0] << ")";
                         // Si la forme trouvée n'est pas exactement celle du texte,
                         // je donne la forme trouvée entre parenthèses.
                         fluxL << "\t" << __lemmatiseur->traduction(eclats[ii]) << "\t";
                         fluxL << eclats[ii] << "\t" << __lemmatiseur->nettoie2(eclats[ii]) << "\n";
+                        nEl += 1;
                     }
                 }
                 else //res = llem.join("\t");
@@ -1609,13 +1631,17 @@ void MainWindow::txt2csv()
                             else mapLem[eclats[ii]] = eclats[0];
                         }
                     }
+                    int taille = mapLem.keys().size();
                     foreach (QString lem, mapLem.keys())
                     {
-                        fluxL << numMot << "\t" << mot << "\t"
+                        if (taille > 1) fluxL << "*\t";
+                        else fluxL << "\t";
+                        fluxL << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\t"
                               << __lemmatiseur->beta2unicode(lem, _beta->isChecked()) ;
                         fluxL << " (" << mapLem[lem] << ")";
                         fluxL << "\t" << __lemmatiseur->traduction(lem) << "\t";
                         fluxL << lem << "\t" << __lemmatiseur->nettoie2(lem) << "\n";
+                        nEl += 1;
                     }
                 }
             }
@@ -1918,3 +1944,7 @@ void MainWindow::auxilium()
     QDesktopServices::openUrl(QUrl("file:" + qApp->applicationDirPath() + "/ressources/doc/index.html"));
 }
 
+void MainWindow::toolsRestore()
+{
+    mainToolBar->show();
+}
