@@ -68,6 +68,7 @@ private:
     QAction *actionSauver;
     QAction *actionTxt2csv;
     QAction *actionTextiColor;
+    QAction *actionApostr;
     QAction *actionBOM;
     QAction *actionA_propos;
     QAction *actionConsulter;

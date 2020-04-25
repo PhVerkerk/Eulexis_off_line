@@ -197,6 +197,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         settings.setValue("beta",_beta->isChecked());
         settings.setValue("exact",_exact->isChecked());
         settings.setValue("TextiColor",actionTextiColor->isChecked());
+        settings.setValue("Apostrophes",actionApostr->isChecked());
         settings.setValue("BOM",actionBOM->isChecked());
 //        int pt = _txtEdit->font().pointSize();
         QFont font = _txtEdit->font();
@@ -259,6 +260,7 @@ void MainWindow::readSettings()
     _beta->setChecked(settings.value("beta",true).toBool());
     _exact->setChecked(settings.value("exact",true).toBool());
     actionTextiColor->setChecked(settings.value("TextiColor",false).toBool());
+    actionApostr->setChecked(settings.value("Apostrophes",false).toBool());
     actionBOM->setChecked(settings.value("BOM",false).toBool());
     int pt = settings.value("zoom",14).toInt();
     QString police = settings.value("police","Times New Roman").toString();
@@ -309,6 +311,10 @@ void MainWindow::createW()
     actionTextiColor->setObjectName(QStringLiteral("Option pour sauver le texte colorisé"));
     actionTextiColor->setCheckable(true);
     actionTextiColor->setChecked(false);
+    actionApostr = new QAction("  Option Apostrophes", this);
+    actionApostr->setObjectName(QStringLiteral("Option pour mettre en évidence les apostrophes"));
+    actionApostr->setCheckable(true);
+    actionApostr->setChecked(false);
     actionBOM = new QAction("  Option BOM4ms", this);
     actionBOM->setObjectName(QStringLiteral("Option pour mettre BOM en début de fichier"));
     actionBOM->setCheckable(true);
@@ -495,6 +501,7 @@ void MainWindow::createW()
     menuFichier->addSeparator();
     menuFichier->addAction(actionTxt2csv);
     menuFichier->addAction(actionTextiColor);
+    menuFichier->addAction(actionApostr);
     menuFichier->addAction(actionBOM);
     menuFichier->addSeparator();
     menuFichier->addAction(exportAct);
@@ -1513,7 +1520,7 @@ void MainWindow::txt2csv()
     int i = (lm.size()-1) / 200;
     while (ratio < i) ratio *= 2;
     int j = 1;
-    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size() / ratio) +5, _second);
+    QProgressDialog progr("Lemmatisation en cours...", "Arrêter", 0, (lm.size() / ratio) +5);
     // Je m'offre une marge de 5%.
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
@@ -1540,7 +1547,17 @@ void MainWindow::txt2csv()
 //        if (lm[i+1].startsWith(_reApostr))
         if ((i > 1) && lm[i-1].contains("\n")) numLigne +=1;
         if (lm[i+1].indexOf(_reApostr) == 0)
+        {
             mot.append("'");
+            if (actionApostr->isChecked() && actionTextiColor->isChecked())
+            {
+                // David Carter voudrait que les apostrophes soient sur fond jaune.
+                QString bla = lm[i+1].mid(0,1);
+                bla.prepend("<span style=\"background-color:yellow;\">");
+                bla.append("</span>");
+                lm[i+1] = bla + lm[i+1].mid(1);
+            }
+        }
         if (mot.contains(QRegExp("\\d")))
         {
             fluxL << "\t" << nEl << "\t\t\t" << mot << "\n";
