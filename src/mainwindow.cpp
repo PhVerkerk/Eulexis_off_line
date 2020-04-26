@@ -186,7 +186,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         settings.beginGroup("dicos");
         settings.setValue("LSJ",LSJ->isChecked());
         settings.setValue("Pape",Pape->isChecked());
-        settings.setValue("Bailly",Bailly->isChecked());
+        settings.setValue("AbrBailly",AbrBailly->isChecked());
         settings.setValue("Allemand",langAlld->isChecked());
         settings.setValue("Anglais",langAngl->isChecked());
         settings.setValue("Français",langFr->isChecked());
@@ -246,7 +246,7 @@ void MainWindow::readSettings()
     {
         LSJ->setChecked(settings.value("LSJ",true).toBool());
         Pape->setChecked(settings.value("Pape",true).toBool());
-        Bailly->setChecked(settings.value("Bailly",true).toBool());
+        AbrBailly->setChecked(settings.value("AbrBailly",true).toBool());
         langAlld->setChecked(settings.value("Allemand",false).toBool());
         if (langAlld->isChecked()) lAlld();
         langAngl->setChecked(settings.value("Anglais",false).toBool());
@@ -356,9 +356,9 @@ void MainWindow::createW()
     Pape = new QAction("Le Pape",this);
     Pape->setCheckable(true);
     Pape->setChecked(true);
-    Bailly = new QAction("Le Bailly",this);
-    Bailly->setCheckable(true);
-    Bailly->setChecked(true);
+    AbrBailly = new QAction("Le Bailly abr.",this);
+    AbrBailly->setCheckable(true);
+    AbrBailly->setChecked(true);
     consAct = new QAction("Consulter les dicos",this);
     consAct->setCheckable(true);
     consAct->setChecked(true);
@@ -376,7 +376,7 @@ void MainWindow::createW()
 
     actLSJ = new QAction("Mettre à jour le LSJ",this);
     actPape = new QAction("Mettre à jour le Pape",this);
-    actBailly = new QAction("Mettre à jour le Bailly",this);
+    actAbrBailly = new QAction("Mettre à jour le Bailly abr.",this);
     actAnalyses = new QAction("Mettre à jour les analyses",this);
     actTrad = new QAction("Mettre à jour les traductions",this);
     actComInd = new QAction("Mettre à jour l'index commun",this);
@@ -528,7 +528,7 @@ void MainWindow::createW()
 //    menuDicos->addSeparator();
     menuDicos->addAction(LSJ);
     menuDicos->addAction(Pape);
-    menuDicos->addAction(Bailly);
+    menuDicos->addAction(AbrBailly);
     menuDicos->addSeparator();
     menuDicos->addAction(langAlld);
     menuDicos->addAction(langAngl);
@@ -550,7 +550,7 @@ void MainWindow::createW()
     menuExtra->addSeparator();
     menuExtra->addAction(actLSJ);
     menuExtra->addAction(actPape);
-    menuExtra->addAction(actBailly);
+    menuExtra->addAction(actAbrBailly);
     menuExtra->addSeparator();
     menuExtra->addAction(actComInd);
 
@@ -605,7 +605,7 @@ void MainWindow::connecter()
 
     connect(actAnalyses, SIGNAL(triggered()), this, SLOT(majA()));
     connect(actTrad, SIGNAL(triggered()), this, SLOT(majT()));
-    connect(actBailly, SIGNAL(triggered()), this, SLOT(majB()));
+    connect(actAbrBailly, SIGNAL(triggered()), this, SLOT(majAB()));
     connect(actComInd, SIGNAL(triggered()), this, SLOT(majC()));
     connect(actLSJ, SIGNAL(triggered()), this, SLOT(majL()));
     connect(actPape, SIGNAL(triggered()), this, SLOT(majP()));
@@ -746,10 +746,10 @@ void MainWindow::majL()
     }
 }
 
-void MainWindow::majB()
+void MainWindow::majAB()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Lire le fichier du Bailly",QDir::homePath(),"Text files (*.txt)");
+            QFileDialog::getOpenFileName(this, "Lire le fichier de l'abrégé du Bailly",QDir::homePath(),"Text files (*.txt)");
     if (!nomFichier.isEmpty())
     {
         QString nomCourt = nomFichier.section("/",-1);
@@ -765,10 +765,10 @@ void MainWindow::majB()
             return;
         }
 
-        if (QFile::exists(_rscrDir + "Bailly.csv"))
+        if (QFile::exists(_rscrDir + "AbrBailly.csv"))
         {
-            QFile::remove(_rscrDir + "Bailly.bak");
-            QFile::rename(_rscrDir + "Bailly.csv",_rscrDir + "Bailly.bak");
+            QFile::remove(_rscrDir + "AbrBailly.bak");
+            QFile::rename(_rscrDir + "AbrBailly.csv",_rscrDir + "AbrBailly.bak");
         }
         // Si l'index existait, je le renomme en .bak
         if (QFile::exists(_rscrDir + nomCourt))
@@ -776,7 +776,7 @@ void MainWindow::majB()
         QFile::copy(nomFichier,_rscrDir + nomCourt);
         // Je copie le fichier dans les ressources.
 
-        __lemmatiseur->majBailly(nomCourt);
+        __lemmatiseur->majAbrBailly(nomCourt);
     }
 }
 
@@ -949,9 +949,9 @@ void MainWindow::consulter(QString f)
             // Si les articles sont courts, je les joins avant de passer à la suite.
         }
     }
-    if (Bailly->isChecked())
+    if (AbrBailly->isChecked())
     {
-        QStringList LSJdata = __lemmatiseur->consBailly(f);
+        QStringList LSJdata = __lemmatiseur->consAbrBailly(f);
         if (!LSJdata.isEmpty())
         {
             if (plusPetit(LSJdata[0],f))
@@ -960,10 +960,10 @@ void MainWindow::consulter(QString f)
             if (plusPetit(f,LSJdata[0]))
                 if (plusPetit(LSJdata[0],ap) || (ap == "")) ap = LSJdata[0];
             LSJdata.removeFirst();
-            liens.append(" Bailly " + LSJdata[0]);
+            liens.append(" AbrBailly " + LSJdata[0]);
             LSJdata.removeFirst();
 //            donnees.append("<h3><a name='#Bailly'>Bailly abr. 1919 : </a></h3>\n");
-            LSJdata[0].prepend("<h3><a name='#Bailly'>Bailly abr. 1919 : </a></h3>\n");
+            LSJdata[0].prepend("<h3><a name='#AbrBailly'>Bailly abr. 1919 : </a></h3>\n");
             if ((LSJdata.size() == 1) || longs(LSJdata))
                 donnees << LSJdata;
             else donnees << LSJdata.join("\n<br />");
@@ -1158,7 +1158,7 @@ int MainWindow::lireOptions()
     int opt=0;
     if (LSJ->isChecked()) opt++;
     if (Pape->isChecked()) opt += 2;
-    if (Bailly->isChecked()) opt += 4;
+    if (AbrBailly->isChecked()) opt += 4;
     return opt;
 }
 

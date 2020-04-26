@@ -76,10 +76,10 @@ private:
     QAction *zoomAct;
     QAction *LSJ;
     QAction *Pape;
-    QAction *Bailly;
+    QAction *AbrBailly;
     QAction *actLSJ;
     QAction *actPape;
-    QAction *actBailly;
+    QAction *actAbrBailly;
     QAction *actComInd;
     QAction *actAnalyses;
     QAction *actTrad;
@@ -148,7 +148,7 @@ private slots:
     void actualiser2();
     void consulter(QString f = "");
     void majA();
-    void majB();
+    void majAB(); // Pour l'abrégé du Bailly
     void majC();
     void majL();
     void majP();

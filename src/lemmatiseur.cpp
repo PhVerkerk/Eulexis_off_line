@@ -25,7 +25,7 @@ Lemmat::Lemmat(QString rep)
     lireTraductions();
 qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
     lireLSJ();
-    lireBailly();
+    lireAbrBailly();
     lirePape();*/
     reLettres = QRegExp("[A-Za-z]");
     rePonct = QRegExp("([\\.?!;:,\\)\\(])");
@@ -37,7 +37,7 @@ void Lemmat::lireData()
     lireTraductions();
 // qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
     lireLSJ();
-    lireBailly();
+    lireAbrBailly();
     lirePape();
 }
 
@@ -484,12 +484,12 @@ void Lemmat::majAnalyses(QString nom)
     */
 }
 
-void Lemmat::majBailly(QString nom)
+void Lemmat::majAbrBailly(QString nom)
 {
     // Pour le dico "XMLBailly*.txt"
     QFile fandr (_rscrDir + nom);
-    QFile findex (_rscrDir + "Bailly.csv");
-    QString cle_prec="ὤκιμον"; // dernier mot du Bailly
+    QFile findex (_rscrDir + "AbrBailly.csv");
+    QString cle_prec="ὤκιμον"; // dernier mot du AbrBailly
     if (fandr.open (QFile::ReadOnly | QFile::Text))
     {
         QString linea;
@@ -513,10 +513,10 @@ void Lemmat::majBailly(QString nom)
             if (linea.startsWith('!') || linea.isEmpty()) continue;
             linea=linea.trimmed();
             verif(linea);
-            // Pour le Bailly, le premier mot avant un double blanc
+            // Pour le AbrBailly, le premier mot avant un double blanc
 //            cle = linea.section("  ",0,0).trimmed();
             cle = linea.section("\t",0,0).trimmed();
-            cle.replace("ϐ","β"); // Le Bailly est le seul à utiliser le ϐ intérieur.
+            cle.replace("ϐ","β"); // Le AbrBailly est le seul à utiliser le ϐ intérieur.
             QString clef = nettoie(cle).toLower();
             // La clef est la version, en caractères latins sans décoration, de cle (en grec avec déco).
             if (clef.contains("-"))
@@ -546,7 +546,7 @@ void Lemmat::majBailly(QString nom)
     else qDebug() << "erreur";
     fandr.close ();
     findex.close ();
-    lireBailly();
+    lireAbrBailly();
 }
 
 void Lemmat::majLSJ(QString nom)
@@ -767,22 +767,22 @@ void Lemmat::lireLSJ()
     */
 }
 
-void Lemmat::lireBailly()
+void Lemmat::lireAbrBailly()
 {
     // Charger en mémoire l'index du Bailly
-    if (!QFile::exists(_rscrDir + "Bailly.csv")) return;
-    _BaillyIndex.clear();
-    QFile findex (_rscrDir + "Bailly.csv");
+    if (!QFile::exists(_rscrDir + "AbrBailly.csv")) return;
+    _AbrBaillyIndex.clear();
+    QFile findex (_rscrDir + "AbrBailly.csv");
     findex.open(QFile::ReadOnly | QFile::Text);
     QString linea = findex.readLine();
-    _BaillyName = linea.mid(1).trimmed();
-    if (_BaillyName.isEmpty()) qDebug() << "Erreur : le nom du Bailly manque";
-//    else qDebug() << _BaillyName;
+    _AbrBaillyName = linea.mid(1).trimmed();
+    if (_AbrBaillyName.isEmpty()) qDebug() << "Erreur : le nom du Bailly manque";
+//    else qDebug() << _AbrBaillyName;
 
     int i = findex.size()/100;
     int ratio = 1024;
     while (ratio < i) ratio *= 2;
-    QProgressDialog progr("Chargement du Bailly...", QString(), 0, findex.size()/ratio);
+    QProgressDialog progr("Chargement de l'abrégé du Bailly...", QString(), 0, findex.size()/ratio);
     progr.setWindowModality(Qt::WindowModal);
     progr.setMinimumDuration(1000);
     progr.setValue(0);
@@ -803,12 +803,12 @@ void Lemmat::lireBailly()
             // Tout va bien !
             if (linea.endsWith("\n"))
                 linea.chop(1);
-            _BaillyIndex.insert(linea.section(":",0,0),linea);
+            _AbrBaillyIndex.insert(linea.section(":",0,0),linea);
         }
         else qDebug() << "Erreur dans l'index du Bailly : " << linea;
     }
     findex.close ();
-//    qDebug() << _BaillyIndex.size();
+//    qDebug() << _AbrBaillyIndex.size();
 }
 
 void Lemmat::lirePape()
@@ -919,7 +919,7 @@ QStringList Lemmat::consLSJ(QString f)
     return res;
 }
 
-QStringList Lemmat::consBailly(QString f)
+QStringList Lemmat::consAbrBailly(QString f)
 {
     // Consulter le Bailly pour la forme f
     QString f_gr = "";
@@ -934,7 +934,7 @@ QStringList Lemmat::consBailly(QString f)
         else f = f.section("–",0,0).trimmed();
     }
     if (f.contains(" ")) f = f.section(" ",0,0);
-    QStringList llem = _BaillyIndex.values(f);
+    QStringList llem = _AbrBaillyIndex.values(f);
     if (llem.isEmpty()) return llem;
     if (f_gr != "")
     {
@@ -956,7 +956,7 @@ QStringList Lemmat::consBailly(QString f)
             }
         }
     }
-    QStringList res = consult(_BaillyName,llem,"B");
+    QStringList res = consult(_AbrBaillyName,llem,"A");
     // Je fais du post-traitement : recherche des renvois.
     if (!res.isEmpty()) for (int i=3; i<res.size();i++)
     {
@@ -1078,10 +1078,18 @@ QStringList Lemmat::consult(QString nom, QStringList llem, QString prefix)
         apres.append(ecl[4]);
         liens.append(aHref.arg(i).arg(ecl[2]));
 
-        linea.insert(ecl[2].size(),"</b></span>");
-        linea.prepend("<span style='color:red'><b>");
+        if (linea.startsWith("<div"))
+        {
+            // C'est le Bailly 2020
+            linea = linea.section(">",1); // Je supprime le "<div...>"
+        }
+        else
+        {
+            linea.insert(ecl[2].size(),"</b></span>");
+            linea.prepend("<span style='color:red'><b>");
+            linea.append("</div>");
+        }
         linea.prepend(div.arg(i));
-        linea.append("</div>");
         donnees.append(linea);
     }
     fichier.close();
@@ -1219,7 +1227,7 @@ QString Lemmat::lierRenvois(QString article, QString renvoi)
 void Lemmat::indexCommun()
 {
     QStringList tout = _LSJindex.keys();
-    tout << _BaillyIndex.keys();
+    tout << _AbrBaillyIndex.keys();
     tout << _PapeIndex.keys();
     tout.sort();
     tout.removeDuplicates();
@@ -1232,10 +1240,10 @@ void Lemmat::indexCommun()
 //        clef_gr.replace("ϐ","β");
         QStringList valLJS = _LSJindex.values(clef);
         QStringList valPape = _PapeIndex.values(clef);
-        QStringList valBailly = _BaillyIndex.values(clef);
+        QStringList valAbrBailly = _AbrBaillyIndex.values(clef);
         int nMax = valLJS.size();
         if (valPape.size() > nMax) nMax = valPape.size();
-        if (valBailly.size() > nMax) nMax = valBailly.size();
+        if (valAbrBailly.size() > nMax) nMax = valAbrBailly.size();
         for (int i=nMax; i>0;i--)
         {
             QString ligne = clef_gr + ":";
@@ -1245,8 +1253,8 @@ void Lemmat::indexCommun()
             if (i<=valPape.size())
                 ligne.append(valPape[valPape.size()-i].section(":",1,2)+":");
             else ligne.append("::");
-            if (i<=valBailly.size())
-                ligne.append(valBailly[valBailly.size()-i].section(":",1,2)+":");
+            if (i<=valAbrBailly.size())
+                ligne.append(valAbrBailly[valAbrBailly.size()-i].section(":",1,2)+":");
             else ligne.append("::");
             ligne.append("\n");
             comIndex.insert(clef_gr.toUtf8(),ligne);
@@ -1258,7 +1266,7 @@ void Lemmat::indexCommun()
     fichier.write(lg.toUtf8());
     lg = "\";\n$Pape_name = \"" + _PapeName;
     fichier.write(lg.toUtf8());
-    lg = "\";\n$Bailly_name = \"" + _BaillyName;
+    lg = "\";\n$AbrBailly_name = \"" + _AbrBaillyName;
     fichier.write(lg.toUtf8());
     lg = "\";\n?>\n";
     fichier.write(lg.toUtf8());

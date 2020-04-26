@@ -22,14 +22,14 @@ public:
     QString nettoie(QString f);
     QString nettoie2(QString res);
     void majLSJ(QString nom);
-    void lireBailly();
+    void lireAbrBailly();
     void lireLSJ();
     void lirePape();
     QStringList consLSJ(QString f);
-    QStringList consBailly(QString f);
+    QStringList consAbrBailly(QString f);
     QStringList consPape(QString f);
     void majPape(QString nom);
-    void majBailly(QString nom);
+    void majAbrBailly(QString nom);
     void majAnalyses(QString nom);
     QStringList consult(QString nom, QStringList llem, QString prefix);
     void indexCommun();
@@ -46,10 +46,10 @@ private:
     int _cible; // Choix de la langue 0 = Anglais ; 1 = Français.
     QMultiMap<QString,QString> _LSJindex;
     QMultiMap<QString,QString> _PapeIndex;
-    QMultiMap<QString,QString> _BaillyIndex;
+    QMultiMap<QString,QString> _AbrBaillyIndex;
     QString _LSJname;
     QString _PapeName;
-    QString _BaillyName;
+    QString _AbrBaillyName;
     QStringList _beta;
     QStringList _uni;
     QRegExp rePonct;
