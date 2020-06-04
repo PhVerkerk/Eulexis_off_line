@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+  <title>Fenêtre de texte dans Eulexis</title>
+  <meta name="Author" content="Philippe Verkerk" />
+  <meta name="GENERATOR" content="markdown+theme 2.2.3b1 TAB=8 DEBUG" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+
+<p><em>Eulexis v.1.1 &ndash; guide juin 2020</em></p>
+
+<p>précédent : <a href="lemmatiser.html">Fenêtre de lemmatisation</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="index.html">index</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+suivant : <a href="txt2csv.html">Lemmatisation de fichiers</a></p>
+
+<h1>Fenêtre de texte</h1>
+
+<p>Le bouton représentant des yeux permet d'afficher et de masquer la fenêtre de texte. Celle-ci peut accueillir un texte qu'il soit saisi directement, copié depuis une autre application ou chargé depuis un fichier. Lorsque le curseur s'arrête sur un mot (<em>ἐμπρέποντας</em> dans l'exemple ci-dessous), la lemmatisation apparaît dans une bulle d'aide. Si l'on clique sur un mot du texte, il est lemmatisé et les solutions trouvées sont ajoutées à la <a href="lemmatiser.html">fenêtre de lemmatisation</a>. Parmi les solutions trouvées, s'il y en a une qui correspond exactement à la forme du texte (c'est à dire avec accent et esprit), elle apparaîtra en première position et sera mise en évidence par sa couleur rouge.</p>
+
+<p><img src="texte.png" alt="fen texte" /></p>
+
+<p>On y trouve une barre d'outils différente de celle de la fenêtre de consultation, puisque les fonctions demandées ne sont pas les mêmes. Le groupe de gauche reprend les trois fonctions du menu « Fichier », <em>Nouveau</em>, <em>Ouvrir</em> et <em>Sauver</em>, fonctions accessibles aussi avec les raccourcis habituels. Le premier efface le contenu de la fenêtre de texte, le second charge un texte depuis un fichier et le troisième permet d'enregistrer le contenu des fenêtres secondaires (la consultation des dictionnaires ne mérite pas d'être sauvée). L'ouverture d'un fichier sauvé précédemment avec Eulexis rétablit le contenu des deux fenêtres secondaires (de texte et de lemmatisation) en écrasant ce qu'elles pouvaient contenir.</p>
+
+<p><strong>Remarque</strong> : la <em>sauvegarde</em> n'est pas vraiment faite pour fournir un fichier sur lequel on va travailler. Le format est un HTML hybride avec, en réalité, deux fichiers HTML (le contenu des deux fenêtres sauvegardées) mis bout à bout. L'intérêt principal de cette fonction <em>Sauver</em> est de permettre de conserver l'état des fenêtres quand on doit interrompre son travail pour le reprendre plus tard. Pour établir des <strong>listes de vocabulaire</strong>, par exemple, on utilisera plutôt la fonction de <a href="txt2csv.html">lemmatisation de fichiers</a>. Cette fonction produit un fichier CSV qui peut être repris avec un tableur.
+
+<p><img src="barre_texte.png" alt="barre texte" /></p>
+
+<p>Le bouton portant le signe égal (=) permet de choisir si l'on donne toutes les solutions de lemmatisation ou seulement celles qui correspondent exactement à la forme rencontrée. En effet, la recherche des solutions ne tient pas compte des accent et esprit que peuvent porter les mots. Si le bouton « égal » est activé, les solutions qui n'ont pas les mêmes accent ou esprit sont éliminées s'il y a une forme exacte. Les deux boutons au milieu (<em>engrenages</em> et <em>alpha</em>) permettent de lemmatiser le texte en conservant l'ordre des mots dans le texte ou en les rangeant en ordre alphabétique. Si le texte est long, la lemmatisation peut prendre un certain temps.</p>
+
+<p>précédent : <a href="lemmatiser.html">Fenêtre de lemmatisation</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="index.html">index</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+suivant : <a href="txt2csv.html">Lemmatisation de fichiers</a></p>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+  <title>Format des fichiers d'Eulexis</title>
+  <meta name="Author" content="Philippe Verkerk" />
+  <meta name="GENERATOR" content="markdown+theme 2.2.3b1 TAB=8 DEBUG" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+
+<p><em>Eulexis v.1.1 &ndash; guide juin 2020</em></p>
+
+<p>précédent : <a href="maj.html">Mise à jour</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="index.html">index</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+suivant : <a href="licence.html">Remerciements, licence</a></p>
+
+<h1>Format des données</h1>
+
+<p>Les <strong>dictionnaires</strong> sont simplement des fichiers textes. Ils sont balisés en <strong>html</strong>. Chaque article consiste en un paragraphe. Le <em>mot-clef</em> commence l'article et il est suivi par une tabulation.</p>
+
+<p>Les <strong>analyses</strong> sont plus difficiles à corriger. Les mots grecs sont codés en betacode (en minuscules). Une ligne du fichier <em>analyses_gr.txt</em> contient toutes les formes identiques aux esprit et accent près (la forme sans accent, esprit et iota souscrit n'est pas donnée, puisqu'elle se calcule aisément). Une forme est suivie d'une tabulation et viennent ensuite les paires <em>lemme</em>+<em>analyse</em> associées à cette forme. Une tabulation sépare le <em>lemme</em> de l'<em>analyse</em> et la paire est placée entre accolades <strong>{ }</strong>. S'il y a plusieurs solutions possibles, elles sont mises à la suite l'une de l'autre. L'ensemble des analyses d'une forme peut être suivi d'une autre forme, précédée d'une tabulation et suivie d'une autre série d'analyses.</p>
+
+<p>Les <strong>traductions</strong> sont dans le fichier <em>trad_gr_en_fr_de.csv</em>. Comme son nom l'indique, il contient le lemme grec en betacode et les traductions anglaise, française et allemande. Les champs sont séparés par des tabulations. Le début du fichier est assez déprimant, car il commence par les noms propres (mots commençant avec une majuscule), absents du LSJ et qui n'ont donc pas de traduction en anglais.</p>
+
+<p><strong>Le fichier de traduction a besoin d'être corrigé !</strong> L'auteur d'Eulexis n'a pas les compétences nécessaires pour ce travail, mais il est prêt à collecter les corrections des divers utilisateurs pour en faire profiter la communauté.</p>
+
+<h1>Important !</h1>
+
+<p>Ne <strong>jamais</strong> modifier directement les fichiers de ressources d'Eulexis. Cela pourrait conduire à des résultats imprévisibles ! On commencera <strong>toujours</strong> par faire une copie des fichiers que l'on veut travailler dans un <em>endroit accessible et bien identifié</em>. Il est également <strong>prudent</strong> de conserver en un <em>lieu sûr</em> les fichiers d'origine pour pouvoir y revenir si la mise à jour avec les fichiers modifiés ne fonctionnait pas.</p>
+
+<p>précédent : <a href="maj.html">Mise à jour</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="index.html">index</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+suivant : <a href="licence.html">Remerciements, licence</a></p>
+
+</body>
+</html>

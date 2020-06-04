@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+  <title>Lemmatiser avec Eulexis</title>
+  <meta name="Author" content="Philippe Verkerk" />
+  <meta name="GENERATOR" content="markdown+theme 2.2.3b1 TAB=8 DEBUG" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+
+<p><em>Eulexis v.1.1 &ndash; guide juin 2020</em></p>
+
+<p>précédent : <a href="consulter.html">Fenêtre principale</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="index.html">index</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+suivant : <a href="texte.html">Fenêtre de texte</a></p>
+
+<h1>Fenêtre de lemmatisation</h1>
+
+<p>Le bouton représentant une paire de lunettes permet d'afficher et de masquer la fenêtre de lemmatisation.</p>
+
+<p><img src="lemmatisation.png" alt="Fenêtre lemm" /></p>
+
+<p>La lemmatisation d'une forme grecque conduit à un résultat qui ressemble à celui présenté ci-dessus. Ici, on a cliqué dans la <a href="texte.html">fenêtre de texte</a> sur les mots <em>ἀπαλλαγὴ</em>, <em>πόνων</em> et <em>φρουρᾶς</em> : ils apparaissent en gras, calés à gauche. Ils sont suivis d'une liste indentée des formes qui coïncident avec celle demandée, sans tenir compte des esprit, accent et iota souscrit qui s'ajoutent aux caractères de base (voir ci-dessous la discussion de l'option <em>forme exacte</em>). Chaque forme est suivie de la liste des lemmatisations et analyses possibles, indentée une fois de plus (ici, il n'y a qu'une analyse possible par forme, mais ce n'est pas toujours le cas). Le lemme apparaît en bleu et souligné, car il est associé à un hyperlien qui ouvre l'article correspondant dans les dictionnaires (voir la <a href="consulter.html">page précédente</a>). Parfois, il est précédé de la forme elle-même dans laquelle est précisée la longueur d'une voyelle comme pour <em>φρουρᾱ́ς</em>. L'analyse morphologique est donnée en abrégé, mais reste compréhensible.</p>
+
+<p><strong>Remarque</strong> : le cas des formes composées est un peu particulier, car on donne la traduction du <em>mot-racine</em>, en laissant au lecteur le soin de démêler le sens des préfixes, parfois multiples. Pour aider les débutants, un lien est toutefois ajouté à chaque préfixe pour mener à l'article correspondant du dictionnaire.</p>
+
+<p>La barre d'outils est différente de celle de la fenêtre de consultation. On retrouve, à gauche, la ligne de saisie et le bouton de lemmatisation et, à droite, les trois boutons (yeux, lunettes et quitter) que nous avions déjà dans la <em>fenêtre de consultation</em>. On se référera à la section précédente pour en avoir la description détaillée. On reconnaît aussi le livre ouvert qui permet de consulter les dictionnaires, les articles étant affichés dans la fenêtre principale.</p>
+
+<p><img src="barre_lem.png" alt="barre lemm" /></p>
+
+<p>Le balai sert à effacer le contenu de cette fenêtre. Cette fonction est aussi accessible avec le raccourci <strong>Ctrl-D</strong> (<strong>Cmd-D</strong> sur un Mac). Un message d'alerte est émis si le contenu de cette fenêtre a été modifié sans être sauvé (nous aurons à la <a href="texte.html">page suivante</a> une discussion de la sauvegarde). Les deux derniers boutons (<em>beta rond</em> et <em>signe égal</em>) méritent une description plus détaillée.</p>
+
+<p><strong>Beta rond</strong>
+Une tradition française (et également grecque, depuis au moins le 15<sup>e</sup> siècle) veut que l'on distingue le beta initial <strong>β</strong> du beta intérieur <strong>ϐ</strong>. Dans les dictionnaires, seul le <strong>β</strong> est utilisé, sauf pour le Bailly 2020. En revanche, dans la fenêtre de lemmatisation, on peut choisir de distinguer les deux beta ou pas. On remarquera, dans l'image ci-dessus, que le bouton de lemmatisation contient <em>βαϐαι</em>, conversion de <em>babai</em> en caractères grecs lorsque l'option <em>beta rond</em> est sélectionnée.</p>
+
+<p><strong>=</strong> (signe égal : forme exacte)
+Le principe de fonctionnement d'Eulexis consiste à chercher une forme sans tenir compte des accent, esprit ou iota souscrit. Les quantités (<em>macron et breve</em>) qui sont parfois indiquées seront ignorées également. C'est tout à fait pertinent quand le mot a été saisi en caractères latins sans accent. Toutefois, lorsque l'on lemmatise un texte en grec, les accents et les esprits sont spécifiés. On peut donc <em>choisir</em> la lemmatisation qui correspond à la forme du texte. Lorsque l'option <em>forme exacte</em> <strong>n'est pas sélectionnée</strong>, toutes les solutions possibles sont affichées. Si l'une d'elles correspond exactement à la forme grecque demandée, elle apparaîtra en début de liste et sera en rouge. Lorsque l'option <em>forme exacte</em> <strong>est sélectionnée</strong>, cette solution en rouge sera la seule à apparaître, si elle existe. S'il n'y a pas de solution exacte, toutes les solutions possibles seront proposées.</p>
+
+<p>précédent : <a href="consulter.html">Fenêtre principale</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="index.html">index</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+suivant : <a href="texte.html">Fenêtre de texte</a></p>
+
+
+</body>
+</html>
