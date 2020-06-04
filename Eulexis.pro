@@ -45,16 +45,18 @@ macx:
     ICON = src/res/Eulexis.icns
     # install into app bundle
     # à changer en ressources
-    data.path = Eulexis.app/Contents/MacOS/ressources
-    data.files =  Eulexis_data/*
+#    data.path = Eulexis.app/Contents/MacOS/ressources
+#    data.files =  Eulexis_data/*
 #    deploy.depends = install_documentation
-    deploy.depends += install
+#    deploy.depends += install
 #    documentation.path = Collatinus_11.app/Contents/MacOS/doc/
 #    documentation.files = doc/*.html doc/*.css
 #    dmg.depends = deploy
 #	dmg.commands = ./MacOS/Collatinus.sh
 #    INSTALLS += documentation
-    INSTALLS += data
+#    INSTALLS += data
+# Le 25 mai 2020, je supprime l'installation des données.
+# En effet, elle est difficilement compatible avec la mise à jour des dicos.
     deploy.commands = macdeployqt Eulexis.app
     QMAKE_EXTRA_TARGETS += deploy
 }

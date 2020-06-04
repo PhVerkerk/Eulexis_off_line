@@ -77,9 +77,11 @@ private:
     QAction *LSJ;
     QAction *Pape;
     QAction *AbrBailly;
+    QAction *Bailly;
     QAction *actLSJ;
     QAction *actPape;
     QAction *actAbrBailly;
+    QAction *actBailly;
     QAction *actComInd;
     QAction *actAnalyses;
     QAction *actTrad;
@@ -134,6 +136,19 @@ private:
     QString _apostrophes;
     int _lang;
 
+    // Famille de variables pour le dialogue de vérification
+    QDialog * dVerif;
+    QLabel * dLemme;
+    QLabel * dBeta;
+    QLabel * dOld;
+    QLineEdit * dLine;
+    QFile dFichier;
+    QFile dListe;
+    QTextStream dFlux;
+    void dSetUp();
+    void dNext();
+    QAction * actVerif;
+
 private slots:
     void exportPdf();
     void imprimer();
@@ -149,6 +164,7 @@ private slots:
     void consulter(QString f = "");
     void majA();
     void majAB(); // Pour l'abrégé du Bailly
+    void majB(); // Pour le Bailly 2020
     void majC();
     void majL();
     void majP();
@@ -174,6 +190,12 @@ private slots:
     void auxilium();
 
     void toolsRestore ();
+
+    // Famille de slots pour le dialogue de vérification.
+    void dSkip(); // ne tient pas compte des changements, rend la main
+    void dValid(); // Valide les changements.
+    void dSave(); // Comme valid mais en fermant et réouvrant le fichier
+    void verifT(); // Je définis une nouvelle action, d'où un slot.
 
 public slots:
     void lemmatiser(QString f = "");

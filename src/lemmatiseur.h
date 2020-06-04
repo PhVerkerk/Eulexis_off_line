@@ -23,13 +23,19 @@ public:
     QString nettoie2(QString res);
     void majLSJ(QString nom);
     void lireAbrBailly();
+    void lireBailly();
     void lireLSJ();
     void lirePape();
     QStringList consLSJ(QString f);
     QStringList consAbrBailly(QString f);
+    QStringList consBailly(QString f);
     QStringList consPape(QString f);
+    QStringList consAsterisk(QString f, QMultiMap<QString,QString> * dicIndex);
+    QStringList consRegExp(QString f, QMultiMap<QString,QString> * dicIndex);
+    QStringList cherchIndex(QString f, QMultiMap<QString,QString> * dicIndex);
     void majPape(QString nom);
     void majAbrBailly(QString nom);
+    void majBailly(QString nom);
     void majAnalyses(QString nom);
     QStringList consult(QString nom, QStringList llem, QString prefix);
     void indexCommun();
@@ -38,6 +44,9 @@ public:
     int cible();
     void lireAnalyses();
     void lireTraductions();
+    bool toInit();
+    void initData();
+    void repairTransl(QString nom);
 
 private:
     QString _rscrDir;
@@ -47,9 +56,11 @@ private:
     QMultiMap<QString,QString> _LSJindex;
     QMultiMap<QString,QString> _PapeIndex;
     QMultiMap<QString,QString> _AbrBaillyIndex;
+    QMultiMap<QString,QString> _BaillyIndex;
     QString _LSJname;
     QString _PapeName;
     QString _AbrBaillyName;
+    QString _BaillyName;
     QStringList _beta;
     QStringList _uni;
     QRegExp rePonct;
@@ -59,6 +70,8 @@ private:
     QStringList _refLSJ;
     QStringList _tmpLSJ;
     QStringList _renLSJ;
+    bool _toInit; // Un booléen pour me dire qu'il faut encore initialiser les analyses et traductions.
+    int _maxList; // Pour choisir à un seul endroit, le nombre max de réponses aux caractères de substitution.
 };
 
 #endif // LEMMAT_H

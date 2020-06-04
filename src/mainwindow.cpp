@@ -119,7 +119,6 @@ MainWindow::MainWindow(QWidget *parent)
     createSecond();
     createTrois();
     connecter();
-    _lineEdit->setFocus();
     _msg << "%1 : word not found !\n<br/>";
     _msg << "%1 : mot non trouvé !\n<br/>";
     _msg << "%1 : Wort nicht gefunden !\n<br/>";
@@ -140,6 +139,8 @@ MainWindow::MainWindow(QWidget *parent)
 //    qDebug() << _apostrophes.size() << _apostrophes;
     readSettings();
 //    _second->show();
+    dSetUp();
+    _lineEdit->setFocus();
 }
 
 MainWindow::~MainWindow()
@@ -187,6 +188,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         settings.setValue("LSJ",LSJ->isChecked());
         settings.setValue("Pape",Pape->isChecked());
         settings.setValue("AbrBailly",AbrBailly->isChecked());
+        settings.setValue("Bailly",Bailly->isChecked());
         settings.setValue("Allemand",langAlld->isChecked());
         settings.setValue("Anglais",langAngl->isChecked());
         settings.setValue("Français",langFr->isChecked());
@@ -247,6 +249,7 @@ void MainWindow::readSettings()
         LSJ->setChecked(settings.value("LSJ",true).toBool());
         Pape->setChecked(settings.value("Pape",true).toBool());
         AbrBailly->setChecked(settings.value("AbrBailly",true).toBool());
+        Bailly->setChecked(settings.value("Bailly",true).toBool());
         langAlld->setChecked(settings.value("Allemand",false).toBool());
         if (langAlld->isChecked()) lAlld();
         langAngl->setChecked(settings.value("Anglais",false).toBool());
@@ -359,6 +362,9 @@ void MainWindow::createW()
     AbrBailly = new QAction("Le Bailly abr.",this);
     AbrBailly->setCheckable(true);
     AbrBailly->setChecked(true);
+    Bailly = new QAction("Le Bailly 2020",this);
+    Bailly->setCheckable(true);
+    Bailly->setChecked(true);
     consAct = new QAction("Consulter les dicos",this);
     consAct->setCheckable(true);
     consAct->setChecked(true);
@@ -377,9 +383,11 @@ void MainWindow::createW()
     actLSJ = new QAction("Mettre à jour le LSJ",this);
     actPape = new QAction("Mettre à jour le Pape",this);
     actAbrBailly = new QAction("Mettre à jour le Bailly abr.",this);
+    actBailly = new QAction("Mettre à jour le Bailly 2020",this);
     actAnalyses = new QAction("Mettre à jour les analyses",this);
     actTrad = new QAction("Mettre à jour les traductions",this);
     actComInd = new QAction("Mettre à jour l'index commun",this);
+    actVerif = new QAction("Vérifier les traductions",this);
 
     // raccourcis
     zoomAct->setShortcut(QKeySequence::ZoomIn);
@@ -398,6 +406,11 @@ void MainWindow::createW()
     _lineEdit = new QLineEdit("",this);
     _lineEdit->setMinimumWidth(100);
     _lineEdit->setMaximumWidth(100);
+    QString bulle = "Saisie en caractères latins\n";
+    bulle.append("Substitutions : '*', '?', '2*', '2?' etc...\n");
+    bulle.append("Expressions rationnelles...\n");
+    bulle.append("Voir l'aide pour les détails");
+    _lineEdit->setToolTip(bulle);
     _lineEdit2 = new QLineEdit("",this);
     _lineEdit2->setMinimumWidth(100);
     _lineEdit2->setMaximumWidth(100);
@@ -529,6 +542,7 @@ void MainWindow::createW()
     menuDicos->addAction(LSJ);
     menuDicos->addAction(Pape);
     menuDicos->addAction(AbrBailly);
+    menuDicos->addAction(Bailly);
     menuDicos->addSeparator();
     menuDicos->addAction(langAlld);
     menuDicos->addAction(langAngl);
@@ -551,8 +565,11 @@ void MainWindow::createW()
     menuExtra->addAction(actLSJ);
     menuExtra->addAction(actPape);
     menuExtra->addAction(actAbrBailly);
+    menuExtra->addAction(actBailly);
     menuExtra->addSeparator();
     menuExtra->addAction(actComInd);
+//    menuExtra->addAction(actVerif);
+    // Je commente cette ligne pour l'instant (le 30 mai 2020).
 
     menuAide->addAction(auxAct);
     menuAide->addAction(actionA_propos);
@@ -605,7 +622,9 @@ void MainWindow::connecter()
 
     connect(actAnalyses, SIGNAL(triggered()), this, SLOT(majA()));
     connect(actTrad, SIGNAL(triggered()), this, SLOT(majT()));
+    connect(actVerif, SIGNAL(triggered()), this, SLOT(verifT()));
     connect(actAbrBailly, SIGNAL(triggered()), this, SLOT(majAB()));
+    connect(actBailly, SIGNAL(triggered()), this, SLOT(majB()));
     connect(actComInd, SIGNAL(triggered()), this, SLOT(majC()));
     connect(actLSJ, SIGNAL(triggered()), this, SLOT(majL()));
     connect(actPape, SIGNAL(triggered()), this, SLOT(majP()));
@@ -634,7 +653,7 @@ void MainWindow::aPropos()
 {
     QMessageBox::about(
         this, tr("Eulexis"),
-        tr("<b>Eulexis</b><br/>\n"
+        tr("<b>Eulexis</b> v.1<br/>\n"
            "<i>Lemmatiseur de Grec ancien<br/>\n inspiré de Collatinus</i><br/>\n"
            "Licence GPL, © Philippe Verkerk, 2017 <br/><br/>\n"
            "Merci à :<ul>\n"
@@ -644,6 +663,8 @@ void MainWindow::aPropos()
            "<li>Philipp Roelli</li>\n"
            "<li>André Charbonnet (alias Chaerephon)</li>\n"
            "<li>Mark de Wilde</li>\n"
+           "<li>Gérard Gréco, pour le magnifique Bailly</li>\n"
+           "<li>Helma Dik et Logeion</li>\n"
            "<li>Perseus Project</li>\n"
            "<li>Equipex Biblissima</li></ul>"));
 
@@ -683,6 +704,15 @@ void MainWindow::majA()
 
 void MainWindow::majT()
 {
+/*    // Provisoirement j'utilise ce slot pour réparer les traductions
+    QString nomFichier =
+            QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"TXT files (*.txt)");
+    if (!nomFichier.isEmpty())
+    {
+        if (__lemmatiseur->toInit()) __lemmatiseur->initData();
+        __lemmatiseur->repairTransl(nomFichier);
+    }
+    */
     QString nomFichier =
             QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"CSV files (*.csv)");
     if (nomFichier == _rscrDir + "trad_gr_en_fr_de.csv")
@@ -777,6 +807,40 @@ void MainWindow::majAB()
         // Je copie le fichier dans les ressources.
 
         __lemmatiseur->majAbrBailly(nomCourt);
+    }
+}
+
+void MainWindow::majB()
+{
+    QString nomFichier =
+            QFileDialog::getOpenFileName(this, "Lire le fichier du Bailly",QDir::homePath(),"Text files (*.txt)");
+    if (!nomFichier.isEmpty())
+    {
+        QString nomCourt = nomFichier.section("/",-1);
+
+        if (nomFichier == _rscrDir + nomCourt)
+        {
+            // C'est interdit !
+            QMessageBox::about(
+                this, tr("Attention !"),
+                tr("Il est impossible de mettre à jour le fichier de travail.\n"
+                   "Il faut le copier <b>ailleurs</b> pour le modifier.\n"
+                   "C'est ensuite le fichier modifié qu'il faudra importer.\n"));
+            return;
+        }
+
+        if (QFile::exists(_rscrDir + "Bailly.csv"))
+        {
+            QFile::remove(_rscrDir + "Bailly.bak");
+            QFile::rename(_rscrDir + "Bailly.csv",_rscrDir + "Bailly.bak");
+        }
+        // Si l'index existait, je le renomme en .bak
+        if (QFile::exists(_rscrDir + nomCourt))
+            QFile::remove(_rscrDir + nomCourt);
+        QFile::copy(nomFichier,_rscrDir + nomCourt);
+        // Je copie le fichier dans les ressources.
+
+        __lemmatiseur->majBailly(nomCourt);
     }
 }
 
@@ -970,6 +1034,27 @@ void MainWindow::consulter(QString f)
             // Si les articles sont courts, je les joins avant de passer à la suite.
         }
     }
+    if (Bailly->isChecked())
+    {
+        QStringList LSJdata = __lemmatiseur->consBailly(f);
+        if (!LSJdata.isEmpty())
+        {
+            if (plusPetit(LSJdata[0],f))
+                if (plusPetit(av, LSJdata[0]) || (av == "")) av = LSJdata[0];
+            LSJdata.removeFirst();
+            if (plusPetit(f,LSJdata[0]))
+                if (plusPetit(LSJdata[0],ap) || (ap == "")) ap = LSJdata[0];
+            LSJdata.removeFirst();
+            liens.append(" Bailly " + LSJdata[0]);
+            LSJdata.removeFirst();
+//            donnees.append("<h3><a name='#Bailly'>Bailly abr. 1919 : </a></h3>\n");
+            LSJdata[0].prepend("<a name='#Bailly'><h3>Bailly 2020 : </h3></a>© Gérard Gréco\n");
+            if ((LSJdata.size() == 1) || longs(LSJdata))
+                donnees << LSJdata;
+            else donnees << LSJdata.join("\n<br />");
+            // Si les articles sont courts, je les joins avant de passer à la suite.
+        }
+    }
     if (donnees.isEmpty())
     {
         if (f.contains(reLettres)) f = __lemmatiseur->beta2unicode(f);
@@ -982,10 +1067,39 @@ void MainWindow::consulter(QString f)
         liens.prepend("<br />\n");
         _avant->setText(av);
         _apres->setText(ap);
-        if (longs(donnees)) res.append(donnees.join(liens));
+        if (longs(donnees))
+        {
+            // res.append(donnees.join(liens));
+            // Maintenant que j'ai les caractères de substitution,
+            // je peux avoir plusieurs articles courts et un long.
+            // C'est moche d'avoir la ligne de liens entre chaque article court.
+            QString morceau = "";
+            for (int i = 0; i < donnees.size() - 1; i++)
+            {
+                morceau.append(donnees[i]);
+                if (morceau.size() > 5000 + 150 * morceau.count("href"))
+                {
+                    res.append(morceau);
+                    res.append(liens);
+                    morceau = "";
+                }
+                else morceau.append("<br />\n");
+            }
+            morceau.append(donnees.last());
+            res.append(morceau);
+        }
         else res.append(donnees.join("\n<br />"));
+        /*    QString bla = "<html><head><style>";
+            bla.append(".ital{font-style: italic;}");
+            bla.append("</style></head><body>");
+            bla.append("<p>miaou </p>");
+            bla.append("<p class=\"ital\"> meuh</p>");
+            bla.append("</body></html>");
+            _texte->setHtml(bla);*/
         _txtEdit->setHtml(res + liens);
     }
+    _lineEdit->selectAll();
+    _lineEdit->setFocus();
 }
 
 QString MainWindow::bulle(QString mot)
@@ -1000,6 +1114,7 @@ QString MainWindow::bulle(QString mot)
     // Quelques séparateurs grecs...
 //    if (mot.endsWith("´"))
 */
+    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
     mot.replace(_reApostr,"'");
     QStringList lm = mot.split(_reWordBoundary);
     if (lm.size() < 3) return _msg[_lang].arg(mot);
@@ -1023,6 +1138,7 @@ QString MainWindow::bulle(QString mot)
 
 void MainWindow::lemmatiser(QString f)
 {
+    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
     _changements = true;
     bool vide = f.isEmpty();
     if (vide) f = _lineEdit->text();
@@ -1159,6 +1275,7 @@ int MainWindow::lireOptions()
     if (LSJ->isChecked()) opt++;
     if (Pape->isChecked()) opt += 2;
     if (AbrBailly->isChecked()) opt += 4;
+    if (Bailly->isChecked()) opt += 8;
     return opt;
 }
 
@@ -1315,6 +1432,7 @@ void MainWindow::montrer3()
 void MainWindow::lemmatAlpha()
 {
 //    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
     _changements = true;
     QString txt = _texte->toPlainText();
     if (txt.isEmpty()) return;
@@ -1331,7 +1449,7 @@ void MainWindow::lemmatAlpha()
 //        if (lm[i+1].startsWith(_reApostr))
         if (lm[i+1].indexOf(_reApostr) == 0)
             mot.append("'");
-        QString motNu = __lemmatiseur->beta2unicode(__lemmatiseur->nettoie(mot));
+        QString motNu = __lemmatiseur->beta2unicode(__lemmatiseur->nettoie(mot),false);
         if (!mot.contains(QRegExp("\\d")) && !mots.values().contains(mot))
             mots.insert(motNu,mot);
         // Je vérifie que le mot ne contient pas de chiffre et
@@ -1391,6 +1509,7 @@ void MainWindow::lemmatAlpha()
 void MainWindow::lemmatTxt()
 {
 //    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
     _changements = true;
     QString txt = _texte->toPlainText();
     if (txt.isEmpty()) return;
@@ -1490,6 +1609,7 @@ void MainWindow::txt2csv()
     QString nomFichier =
             QFileDialog::getOpenFileName(this, "Lire le fichier",repertoire,"Text files (*.txt)");
     if (nomFichier.isEmpty()) return;
+    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
     bool beta = _beta->isChecked();
     bool ex = _exact->isChecked();
     // Plutôt que de tester ces boutons à chaque mot,
@@ -1614,12 +1734,21 @@ void MainWindow::txt2csv()
                     {
                         if (taille > 2) fluxL << "*\t";
                         else fluxL << "\t";
-                        fluxL << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\t"
-                              << __lemmatiseur->beta2unicode(eclats[ii], _beta->isChecked()) ;
+                        fluxL << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\t";
+                        QString bla = __lemmatiseur->beta2unicode(eclats[ii], _beta->isChecked());
+                        bla.replace("σ,","ς,");
+                        fluxL << bla;
                         if (!exact) fluxL << " (" << eclats[0] << ")";
                         // Si la forme trouvée n'est pas exactement celle du texte,
                         // je donne la forme trouvée entre parenthèses.
-                        fluxL << "\t" << __lemmatiseur->traduction(eclats[ii]) << "\t";
+                        if (eclats[ii].contains("-"))
+                            fluxL << "\t" << __lemmatiseur->traduction(eclats[ii].section("-",1)) << "\t";
+                        // Pour les composés explicites, on ne donne que la traduction de la racine.
+                        else if (eclats[ii].contains(","))
+                            fluxL << "\t" << __lemmatiseur->traduction(eclats[ii].section(",",1)) << "\t";
+                        // S'il y a une virgule, mais pas de -, le lemme est après la virgule.
+                        else
+                            fluxL << "\t" << __lemmatiseur->traduction(eclats[ii]) << "\t";
                         fluxL << eclats[ii] << "\t" << __lemmatiseur->nettoie2(eclats[ii]) << "\n";
                         nEl += 1;
                     }
@@ -1804,14 +1933,17 @@ void MainWindow::choixPolice()
     if (ok)
     {
         // font is set to the font the user selected
-        _texte->setFont(font);
-        _lemEdit->setFont(font);
+        QFont f = QFont(font.family(),font.pointSize());
+        qDebug() << font.family() << _txtEdit->fontFamily();
+        _texte->setFont(f);
+        _lemEdit->setFont(f);
         QTextCursor tc(_lemEdit->document());
         QTextCharFormat tcf = tc.charFormat();
-        tcf.setFont(font);
+        tcf.setFont(f);
         tc.select(QTextCursor::Document);
         tc.mergeCharFormat(tcf);
-        _txtEdit->setFont(font);
+        _txtEdit->setFont(f);
+        qDebug() << _txtEdit->fontFamily();
     }
 }
 /**
@@ -1952,16 +2084,253 @@ bool MainWindow::plusPetit(QString g1, QString g2)
 bool MainWindow::longs(QStringList sl)
 {
     for (int i=0; i<sl.size();i++)
-        if (sl[i].size() > 4000) return true;
+        if (sl[i].size() > 4000 + 150 * sl[i].count("href"))
+        {
+//            qDebug() << sl[i].size() << sl[i].count("href") << sl[i];
+            return true;
+        }
     return false;
 }
 
 void MainWindow::auxilium()
 {
-    QDesktopServices::openUrl(QUrl("file:" + qApp->applicationDirPath() + "/ressources/doc/index.html"));
+    QDesktopServices::openUrl(QUrl("file:" + qApp->applicationDirPath() + "/Aide/index.html"));
 }
 
 void MainWindow::toolsRestore()
 {
     mainToolBar->show();
 }
+
+void MainWindow::dSkip()
+{
+    // Rien ?
+    dNext();
+//    dVerif->close();
+}
+
+void MainWindow::dValid()
+{
+    // J'ai appuyé sur le bouton de validation
+    // Sauver les données recueillies
+    QString f = "%1\t%2\t%3\t%4\n";
+    QString lg = f.arg(dLemme->text()).arg(dBeta->text()).arg(dOld->text()).arg(dLine->text());
+    dFichier.write(lg.toUtf8());
+    dNext();
+//    dVerif->close();
+}
+
+void MainWindow::dSave()
+{
+    dValid();
+    dFichier.close();
+    dFichier.open(QIODevice::Append|QIODevice::Text);
+}
+
+void MainWindow::dSetUp()
+{
+//    qDebug() << "J'entre";
+    dVerif = new QDialog(this);
+    QLabel *tLemme = new QLabel("Lemme : ");
+    QLabel *tBeta = new QLabel("Betacode : ");
+    QLabel *tTrad = new QLabel("Traduction : ");
+    dLemme = new QLabel();
+    dBeta = new QLabel();
+    dOld = new QLabel();
+    dLine = new QLineEdit();
+    dLine->setMinimumWidth(400);
+//    qDebug() << dLine->minimumWidth();
+
+    QPushButton *skipButton = new QPushButton(tr("Skip"));
+    QPushButton *validButton = new QPushButton(tr("Valid"));
+    QPushButton *saveButton = new QPushButton(tr("Save"));
+    validButton->setDefault(true);
+    connect(validButton, SIGNAL(clicked()), this, SLOT(dValid()));
+    connect(skipButton, SIGNAL(clicked()), this, SLOT(dSkip()));
+    connect(saveButton, SIGNAL(clicked()), this, SLOT(dSave()));
+
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    hLayout->addWidget(skipButton);
+    hLayout->addWidget(saveButton);
+    hLayout->addWidget(validButton);
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(tLemme,0,0,Qt::AlignRight);
+    layout->addWidget(dLemme,0,1,Qt::AlignLeft);
+    layout->addWidget(tBeta,1,0,Qt::AlignRight);
+    layout->addWidget(dBeta,1,1,Qt::AlignLeft);
+    layout->addWidget(tTrad,2,0,Qt::AlignLeft);
+
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->addLayout(layout);
+    vLayout->addWidget(dOld);
+    vLayout->addWidget(dLine);
+    vLayout->addLayout(hLayout);
+
+    dVerif->setLayout(vLayout);
+//    qDebug() << dVerif->isModal();
+//    qDebug() << "Je sors.";
+}
+
+void MainWindow::dNext()
+{
+    // J'affiche le prochain élément dans le dialogue de vérification
+    bool notGot = true;
+    QString ligne;
+    QString clef;
+    while (!dFlux.atEnd() && notGot)
+    {
+        ligne = dFlux.readLine ();
+        if (!ligne.startsWith("!") && !ligne.isEmpty())
+        {
+            QStringList eclats = ligne.split("\t");
+            if (eclats.size() > 3)
+            {
+                clef = __lemmatiseur->nettoie2(eclats[1]);
+                if (clef[clef.size() - 1].isDigit()) clef.chop(1);
+                clef.remove("-");
+                consulter(clef);
+                dLemme->setText(eclats[0]);
+                dBeta->setText(eclats[1]);
+                dOld->setText(eclats[2]);
+                dLine->setText(eclats[3]);
+                dLine->selectAll();
+                notGot = false;
+            }
+            else qDebug() << ligne << eclats;
+        }
+    }
+
+    if (dFlux.atEnd() && notGot)
+    {
+        dVerif->close();
+        dFichier.close();
+        dListe.close();
+        // C'est fini !
+    }
+}
+void MainWindow::verifT()
+{
+    QString nomFichier =
+            QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"CSV files (*.csv)");
+    if (nomFichier.isEmpty()) return;
+
+//    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
+
+    dListe.setFileName(nomFichier);
+    dListe.open (QIODevice::ReadOnly|QIODevice::Text);
+    dFlux.setDevice(&dListe);
+    dFlux.setCodec("UTF-8");
+    // Le fichier en entrée
+
+    QString nom = nomFichier;
+    nom.chop(4);
+    nom.append("_revu.csv");
+    dFichier.setFileName(nom);
+    dFichier.open (QIODevice::WriteOnly|QIODevice::Text);
+    // Le fichier en sortie.
+
+    dNext();
+    dVerif->show();
+/*
+    QString ligne;
+    QString clef;
+    while (!fluxL.atEnd ())
+    {
+        ligne = fluxL.readLine ();
+        if (!ligne.startsWith("!") && !ligne.isEmpty())
+        {
+            QStringList eclats = ligne.split("\t");
+            if (eclats.size() == 4)
+            {
+                clef = __lemmatiseur->nettoie2(eclats[1]);
+                if (clef[clef.size() - 1].isDigit()) clef.chop(1);
+                clef.remove("-");
+                consulter(clef);
+                dLemme->setText(eclats[0]);
+                dBeta->setText(eclats[1]);
+                dOld->setText(eclats[2]);
+                dLine->setText(eclats[3]);
+                dVerif->show();
+            }
+            else qDebug() << ligne << eclats;
+        }
+    }
+    dVerif->close();
+    dFichier.close();
+    fListe.close();
+    // C'est fini !*/
+}
+
+/* morceau récupéré dans LASLA_tagger v2.
+void MainWindow::setDialFiche()
+{
+    QLabel *icon = new QLabel;
+    icon->setPixmap(QPixmap(":/res/laslalogo.jpg"));
+    QLabel *text = new QLabel;
+    text->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    text->setWordWrap(true);
+    text->setText("Nouvelle fiche :");
+
+    dFiche = new QDialog(this);
+    QLabel *tForme = new QLabel("Forme : ");
+    ficForme = new QLineEdit();
+    QLabel *tLemme = new QLabel("Lemme : ");
+    ficLemme = new QLineEdit();
+    QLabel *tInd = new QLabel("Indice : ");
+    ficIndice = new QLineEdit();
+    QLabel *tCode = new QLabel("Code : ");
+    ficCode9 = new QLineEdit();
+    QPushButton *finButton = new QPushButton(tr("Appliquer"));
+    connect(finButton, SIGNAL(clicked()), this, SLOT(paramFiche()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(icon,0,0,Qt::AlignCenter);
+    layout->addWidget(text,0,1,Qt::AlignCenter);
+    layout->addWidget(tForme,1,0,Qt::AlignRight);
+    layout->addWidget(ficForme,1,1,Qt::AlignLeft);
+    layout->addWidget(tLemme,2,0,Qt::AlignRight);
+    layout->addWidget(ficLemme,2,1,Qt::AlignLeft);
+    layout->addWidget(tInd,3,0,Qt::AlignRight);
+    layout->addWidget(ficIndice,3,1,Qt::AlignLeft);
+    layout->addWidget(tCode,4,0,Qt::AlignRight);
+    layout->addWidget(ficCode9,4,1,Qt::AlignLeft);
+    layout->addWidget(finButton,5,1,Qt::AlignRight);
+
+    dFiche->setLayout(layout);
+
+    ...
+    QPushButton *annulerButton = new QPushButton(tr("Annuler"));
+    QPushButton *retablirButton = new QPushButton(tr("Rétablir"));
+    QPushButton *appliquerButton = new QPushButton(tr("Appliquer"));
+    appliquerButton->setDefault(true);
+    connect(appliquerButton, SIGNAL(clicked()), this, SLOT(setCouleurs()));
+    connect(annulerButton, SIGNAL(clicked()), this, SLOT(paramFiche()));
+    connect(retablirButton, SIGNAL(clicked()), this, SLOT(defCouleurs()));
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    hLayout->addWidget(annulerButton);
+    hLayout->addWidget(retablirButton);
+    hLayout->addWidget(appliquerButton);
+
+    QGridLayout *layout4 = new QGridLayout;
+    layout4->addWidget(icon4,0,0,Qt::AlignCenter);
+    layout4->addWidget(text4,0,1,Qt::AlignCenter);
+    layout4->addWidget(tc0,1,0,Qt::AlignRight);
+    layout4->addWidget(c0,1,1,Qt::AlignLeft);
+    layout4->addWidget(tc1,2,0,Qt::AlignRight);
+    layout4->addWidget(c1,2,1,Qt::AlignLeft);
+    layout4->addWidget(tc2,3,0,Qt::AlignRight);
+    layout4->addWidget(c2,3,1,Qt::AlignLeft);
+    layout4->addWidget(tc3,4,0,Qt::AlignRight);
+    layout4->addWidget(c3,4,1,Qt::AlignLeft);
+    layout4->addWidget(tc4,5,0,Qt::AlignRight);
+    layout4->addWidget(c4,5,1,Qt::AlignLeft);
+
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->addLayout(layout4);
+    vLayout->addLayout(hLayout);
+
+    dCoul->setLayout(vLayout);
+
+}
+*/
