@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<style> 
+
+	.pp { margin-top:0px; margin-bottom:0px; margin-left:30px; }
+	.rub { margin-top:0px; margin-bottom:0px; margin-left:15px; }
+	.norm { margin-top:0px; margin-bottom:0px; }
+
+</style>
+</head>
+<body>
