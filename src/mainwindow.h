@@ -125,6 +125,7 @@ private:
     void createSecond();
     void createTrois();
     void connecter();
+    QString _entete; // Pour l'entête HTML avec style.
 
     QStringList _msg;
     bool _changements;

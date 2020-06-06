@@ -137,6 +137,15 @@ MainWindow::MainWindow(QWidget *parent)
     _reApostr = QRegExp("["+_apostrophes+"]");
     _reWordBoundary = QRegExp("\\b");
 //    qDebug() << _apostrophes.size() << _apostrophes;
+    if (QFile::exists(_rscrDir + "entete_html.txt"))
+    {
+        // Si le fichier existe, sa première ligne est l'ensemble des signes pouvant servir d'apostrophe.
+        QFile fin(_rscrDir + "entete_html.txt");
+        fin.open(QIODevice::ReadOnly|QIODevice::Text);
+        QByteArray ba = fin.readAll();
+        _entete = QString::fromUtf8(ba); // Ça devrait marcher aussi sur PC.
+        fin.close();
+    }
     readSettings();
 //    _second->show();
     dSetUp();
@@ -1096,7 +1105,8 @@ void MainWindow::consulter(QString f)
             bla.append("<p class=\"ital\"> meuh</p>");
             bla.append("</body></html>");
             _texte->setHtml(bla);*/
-        _txtEdit->setHtml(res + liens);
+        _txtEdit->setHtml(_entete + res + liens + "</body></html>");
+//        _txtEdit->setHtml(res + liens);
     }
     _lineEdit->selectAll();
     _lineEdit->setFocus();

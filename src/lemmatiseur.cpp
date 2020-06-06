@@ -1378,18 +1378,13 @@ QStringList Lemmat::cherchIndex(QString f, QMultiMap<QString, QString> *dicIndex
         else f = f.section("–",0,0).trimmed();
     }
     if (f.contains(" ")) f = f.section(" ",0,0);
-    QStringList llem;
-    if (f.contains(".") || f.contains("[") || f.contains("(") || f.contains("|") || f.contains("{"))
-        llem = consRegExp(f, dicIndex);
-    else if ((f.contains("*") || f.contains("?"))
-            && (f.size() > 1 + f.count("*"))
-            && (f.count("*") + f.count("?") < 3))
-        llem = consAsterisk(f, dicIndex);
-    else  llem = dicIndex->values(f);
 
-    if (llem.isEmpty()) return llem;
+    QStringList llem;
     if (f_gr != "")
     {
+        llem = dicIndex->values(f);
+        // Si j'ai une forme grecque, je ne fais que la recherche directe.
+        if (llem.isEmpty()) return llem;
         QStringList ll = llem;
         // Je dois regarder si j'ai l'entrée exacte
         for (int i = llem.size() - 1; i > -1; i--)
@@ -1408,6 +1403,15 @@ QStringList Lemmat::cherchIndex(QString f, QMultiMap<QString, QString> *dicIndex
             }
         }
     }
+    else if (f.contains(".") || f.contains("[") || f.contains("(")
+             || f.contains("|") || f.contains("{") || f.contains("\\"))
+        llem = consRegExp(f, dicIndex);
+    else if ((f.contains("*") || f.contains("?"))
+            && (f.size() > 1 + f.count("*"))
+            && (f.count("*") + f.count("?") < 3))
+        llem = consAsterisk(f, dicIndex);
+    else  llem = dicIndex->values(f);
+
     return llem;
 }
 
@@ -1425,7 +1429,7 @@ QStringList Lemmat::consLSJ(QString f)
         // Les 3 premiers éléments donnent le mot avant, le mot après et les liens.
         QString article = res[i];
         article.replace("\t"," "); // le tab
-        article.replace("\u00a0"," "); // l'espace insécable
+        article.replace("\u00a0","&nbsp;"); // l'espace insécable
         if (article.contains("v. ") || article.contains(" = ") || article.contains(".</i> for "))
         {
             // Il y a probablement des renvois
