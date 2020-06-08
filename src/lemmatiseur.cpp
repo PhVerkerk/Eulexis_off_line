@@ -1467,6 +1467,10 @@ QStringList Lemmat::consAbrBailly(QString f)
         article.replace("\\n\\n","<br />\n");
         article.replace("\\n","<br />\n");
         article.replace("\u00a0","&nbsp;"); // l'espace insécable
+        article.replace(" ;","&nbsp;;"); // Une espace insécable avant ;
+        article.replace(" :","&nbsp;:"); // Une espace insécable avant :
+        article.replace(" ?","&nbsp;?"); // Une espace insécable avant ?
+        article.replace(" !","&nbsp;!"); // Une espace insécable avant !
 //        qDebug() << article;
         int p = article.indexOf("<i><b>Moy.</b></i>");
         if (article.mid(p-1,1) != "\n") article.insert(p,"<br />\n");
@@ -1509,7 +1513,10 @@ QStringList Lemmat::consBailly(QString f)
         article.replace("\\n\\n","<br/>\n");
 //        article.replace("'","’");
         article.replace("\u00a0","&nbsp;"); // l'espace insécable
-//        article.replace(" ;","\u202F;"); // Une espace insécable étroite
+        article.replace(" ;","&nbsp;;"); // Une espace insécable avant ;
+        article.replace(" :","&nbsp;:"); // Une espace insécable avant :
+        article.replace(" ?","&nbsp;?"); // Une espace insécable avant ?
+        article.replace(" !","&nbsp;!"); // Une espace insécable avant !
 //        qDebug() << article;
 //        int p = article.indexOf("<i><b>Moy.</b></i>");
 //        if (article.mid(p-1,1) != "\n") article.insert(p,"<br/>\n");
@@ -1549,7 +1556,7 @@ QStringList Lemmat::consPape(QString f)
         // Les 3 premiers éléments donnent le mot avant, le mot après et les liens.
         QString article = res[i];
         article.replace("\t"," "); // le tab
-        article.replace("\u00a0"," "); // l'espace insécable
+        article.replace("=\u00a0","= "); // l'espace insécable
         if (article.contains("s.") || article.contains("=") || article.contains("vlg.") || article.contains(". für "))
         {
             // Il y a probablement des renvois
@@ -1733,6 +1740,7 @@ QString Lemmat::lierRenvois(QString article, QString renvoi)
             // Est-il dans le dico ?
             QStringList llem = _LSJindex.values(nettoie(mot));
             if (llem.isEmpty()) llem = _PapeIndex.values(nettoie(mot));
+            if (llem.isEmpty()) llem = _BaillyIndex.values(nettoie(mot));
             if (!llem.isEmpty())
             {
                 QString ajout = "<a href='http://aller/" + uni2betacode(mot) + "'>";

@@ -149,6 +149,8 @@ MainWindow::MainWindow(QWidget *parent)
     readSettings();
 //    _second->show();
     dSetUp();
+    _histItem = 0;
+    _historique.clear();
     _lineEdit->setFocus();
 }
 
@@ -339,6 +341,12 @@ void MainWindow::createW()
     quitAct->setStatusTip(tr("Quitter l'application"));
     actionConsulter =
         new QAction(QIcon(":/res/dicolitt.svg"), tr("Consulter"), this);
+    actionBackward =
+        new QAction(QIcon(":/res/Gauche.svg"), tr("Revenir"), this);
+    actionBackward->setDisabled(true);
+    actionForward =
+        new QAction(QIcon(":/res/Droite.svg"), tr("Avancer"), this);
+    actionForward->setDisabled(true);
 
     fenCons = new QAction(QIcon(":/res/dicolitt.svg"), tr("Fenêtre de consultation"), this);
     fenLem = new QAction(QIcon(":/res/syntaxe.svg"), tr("Fenêtre de lemmatisation"), this);
@@ -492,6 +500,8 @@ void MainWindow::createW()
     mainToolBar->addAction(zoomAct);
     mainToolBar->addAction(deZoomAct);
     */
+    mainToolBar->addAction(actionBackward);
+    mainToolBar->addAction(actionForward);
     mainToolBar->addWidget(_lineEdit);
     mainToolBar->addWidget(_lemmatiser);
 //    mainToolBar->addWidget(_beta);
@@ -626,6 +636,8 @@ void MainWindow::connecter()
     connect(_lemmatiser, SIGNAL(pressed()), this, SLOT(lemmatiser()));
     connect(_lemmatiser2, SIGNAL(pressed()), this, SLOT(lemmatiser()));
     connect(actionConsulter, SIGNAL(triggered()), this, SLOT(consulter()));
+    connect(actionBackward, SIGNAL(triggered()), this, SLOT(backward()));
+    connect(actionForward, SIGNAL(triggered()), this, SLOT(forward()));
     connect(_avant, SIGNAL(clicked()), this, SLOT(avance()));
     connect(_apres, SIGNAL(clicked()), this, SLOT(recule()));
 
@@ -973,9 +985,46 @@ void MainWindow::recule()
     consulter(_apres->text());
 }
 
-void MainWindow::consulter(QString f)
+void MainWindow::backward()
+{
+    if (_histItem < _historique.size() - 1)
+    {
+        _histItem++;
+        consulter(_historique[_histItem],false);
+        actionForward->setDisabled(false);
+        if (_histItem == _historique.size() - 1) actionBackward->setDisabled(true);
+        else actionBackward->setDisabled(false);
+    }
+}
+
+void MainWindow::forward()
+{
+    if (_histItem > 0)
+    {
+        _histItem--;
+        consulter(_historique[_histItem], false);
+        actionBackward->setDisabled(false);
+        if (_histItem == 0) actionForward->setDisabled(true);
+        else actionForward->setDisabled(false);
+    }
+}
+
+void MainWindow::consulter(QString f, bool ajoute)
 {
     if (f.isEmpty()) f = _lineEdit->text().toLower();
+    if (ajoute)
+    {
+        if (_histItem > 0)
+            for (int i = 0; i < _histItem; i++)
+                _historique.removeFirst();
+        // Si je suis dans l'historique et que je fais une nouvelle consultation,
+        // je dois effacer ce que j'avais fait après la page présente.
+        _historique.prepend(f);
+        _histItem = 0;
+        actionForward->setDisabled(true);
+        if (_historique.size() > 1)
+            actionBackward->setDisabled(false);
+    }
     if (f.isEmpty()) return;
     _txtEdit->clear();
     QStringList donnees;
@@ -1313,7 +1362,7 @@ void MainWindow::suivreLien(QUrl url)
         QToolTip::showText(_txtEdit->cursor().pos(), lien.mid(1).trimmed(), this);
     }
 
-    else
+    else if (lien.contains("//aller/"))
     {
         lien = lien.mid(13);
         lien.replace("%7C","|");

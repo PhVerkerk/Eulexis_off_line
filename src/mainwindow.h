@@ -72,6 +72,8 @@ private:
     QAction *actionBOM;
     QAction *actionA_propos;
     QAction *actionConsulter;
+    QAction *actionBackward;
+    QAction *actionForward;
     QAction *deZoomAct;
     QAction *zoomAct;
     QAction *LSJ;
@@ -126,6 +128,8 @@ private:
     void createTrois();
     void connecter();
     QString _entete; // Pour l'entête HTML avec style.
+    QStringList _historique; // Pour conserver les mots consultés
+    int _histItem; // Pour naviguer dans la liste précédente
 
     QStringList _msg;
     bool _changements;
@@ -162,7 +166,7 @@ private slots:
     void valider();
     void actualiser();
     void actualiser2();
-    void consulter(QString f = "");
+    void consulter(QString f = "", bool ajoute = true);
     void majA();
     void majAB(); // Pour l'abrégé du Bailly
     void majB(); // Pour le Bailly 2020
@@ -172,6 +176,8 @@ private slots:
     void majT();
     void avance();
     void recule();
+    void forward();
+    void backward();
     void suivreLien(QUrl url);
     void montrer();
     void montrer3();
