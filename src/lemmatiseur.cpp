@@ -1471,6 +1471,8 @@ QStringList Lemmat::consAbrBailly(QString f)
         article.replace(" :","&nbsp;:"); // Une espace insécable avant :
         article.replace(" ?","&nbsp;?"); // Une espace insécable avant ?
         article.replace(" !","&nbsp;!"); // Une espace insécable avant !
+        article.replace(" »","&nbsp;»"); // Une espace insécable avant »
+        article.replace("« ","«&nbsp;"); // Une espace insécable après «
 //        qDebug() << article;
         int p = article.indexOf("<i><b>Moy.</b></i>");
         if (article.mid(p-1,1) != "\n") article.insert(p,"<br />\n");
@@ -1517,6 +1519,8 @@ QStringList Lemmat::consBailly(QString f)
         article.replace(" :","&nbsp;:"); // Une espace insécable avant :
         article.replace(" ?","&nbsp;?"); // Une espace insécable avant ?
         article.replace(" !","&nbsp;!"); // Une espace insécable avant !
+        article.replace(" »","&nbsp;»"); // Une espace insécable avant »
+        article.replace("« ","«&nbsp;"); // Une espace insécable après «
 //        qDebug() << article;
 //        int p = article.indexOf("<i><b>Moy.</b></i>");
 //        if (article.mid(p-1,1) != "\n") article.insert(p,"<br/>\n");
