@@ -130,6 +130,7 @@ private:
     QString _entete; // Pour l'entête HTML avec style.
     QStringList _historique; // Pour conserver les mots consultés
     int _histItem; // Pour naviguer dans la liste précédente
+    QAction *effHistAct;
 
     QStringList _msg;
     bool _changements;
@@ -178,6 +179,7 @@ private slots:
     void recule();
     void forward();
     void backward();
+    void effaceHist();
     void suivreLien(QUrl url);
     void montrer();
     void montrer3();

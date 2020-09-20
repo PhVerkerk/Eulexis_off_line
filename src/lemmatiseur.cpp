@@ -1800,6 +1800,7 @@ void Lemmat::indexCommun()
     {
         QString clef_gr = beta2unicode(clef,false);
 //        clef_gr.replace("ϐ","β");
+        if (clef == "s") clef_gr = "σ";
         QStringList valLJS = _LSJindex.values(clef);
         QStringList valPape = _PapeIndex.values(clef);
         QStringList valAbrBailly = _AbrBaillyIndex.values(clef);

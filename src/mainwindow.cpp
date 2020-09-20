@@ -353,6 +353,7 @@ void MainWindow::createW()
     fenTxt = new QAction(QIcon(":/res/dicolem.svg"), tr("Fenêtre de texte"), this);
     balaiAct = new QAction(QIcon(":res/edit-clear.svg"),
                            tr("&Effacer les résultats"), this);
+    effHistAct = new QAction(tr("Effacer l'historique"), this);
     auxAct = new QAction(QIcon(":res/help-browser.svg"), tr("aide"), this);
     zoomAct = new QAction(QIcon(":res/zoom.svg"), tr("Plus grand"), this);
     deZoomAct = new QAction(QIcon(":res/dezoom.svg"), tr("Plus petit"), this);
@@ -555,6 +556,7 @@ void MainWindow::createW()
     menuEdition->addAction(chxPolice);
     menuEdition->addSeparator();
     menuEdition->addAction(balaiAct);
+    menuEdition->addAction(effHistAct);
 
 //    menuDicos->addAction(consAct);
 //    menuDicos->addSeparator();
@@ -1009,9 +1011,18 @@ void MainWindow::forward()
     }
 }
 
+void MainWindow::effaceHist()
+{
+    _historique.clear();
+    _histItem = 0;
+    actionForward->setDisabled(true);
+    actionBackward->setDisabled(true);
+}
+
 void MainWindow::consulter(QString f, bool ajoute)
 {
     if (f.isEmpty()) f = _lineEdit->text().toLower();
+    else _lineEdit->setText(f);
     if (ajoute)
     {
         if (_histItem > 0)
@@ -1887,6 +1898,12 @@ void MainWindow::txt2csv()
         fluxL << "</p>\n</body></html>\n";
         fEntree.close();
     }
+    QMessageBox::about(
+        this, tr("File saved in the source folder !"),
+        tr("<b>Tip:</b> if you are using Excel,\n"
+           "open the file in Notepad <b>first</b>\n"
+           "and save it as <b>UTF-8</b>.\n"
+           "<b>Then</b> open it in Excel.\n"));
 }
 
 void MainWindow::lAlld()
@@ -2240,10 +2257,12 @@ void MainWindow::dNext()
     while (!dFlux.atEnd() && notGot)
     {
         ligne = dFlux.readLine ();
-        if (!ligne.startsWith("!") && !ligne.isEmpty())
+//        if (!ligne.startsWith("!") && !ligne.isEmpty())
+        // Au dessus, pour un csv normal. En dessous, pour les Bailly_vide
+        if (!ligne.startsWith("\t") && !ligne.isEmpty())
         {
             QStringList eclats = ligne.split("\t");
-            if (eclats.size() > 3)
+/*            if (eclats.size() > 3)
             {
                 clef = __lemmatiseur->nettoie2(eclats[1]);
                 if (clef[clef.size() - 1].isDigit()) clef.chop(1);
@@ -2256,7 +2275,23 @@ void MainWindow::dNext()
                 dLine->selectAll();
                 notGot = false;
             }
-            else qDebug() << ligne << eclats;
+*/            // idem
+            if (eclats.size() > 2)
+            {
+                clef = __lemmatiseur->nettoie2(eclats[0]);
+                if (clef[0].isDigit()) clef = clef.mid(2);
+                if (clef.endsWith(",")) clef.chop(1);
+                if (clef.contains("-")) clef = clef.mid(0,clef.indexOf("-"));
+                clef.remove("·");
+                consulter(clef);
+                dLemme->setText(eclats[0]);
+                dBeta->setText(eclats[1]);
+                dOld->setText(eclats[2]);
+                dLine->setText("");
+                dLine->selectAll();
+                notGot = false;
+            }
+            // else qDebug() << ligne << eclats;
         }
     }
 
