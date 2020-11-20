@@ -1,5 +1,11 @@
 # Eulexis_off_line
-Ancient Greek lemmatisation tool
+
+Eulexis is an **Ancient Greek lemmatisation tool**. 
+
+It is a free and open source software available for Mac OS and Windows. 
+It is also compatible with GNU/Linux, so you can compile this software from the source code available in this repository (see [this comment](https://github.com/PhVerkerk/Eulexis_off_line/issues/3#issue-737616080)).
+
+Installation packages for Mac OS and Windows are downloadable on this page: https://outils.biblissima.fr/en/eulexis/
 
 ### Update 2020-01-18
 
