@@ -31,13 +31,22 @@ RESOURCES += src/Eulexis.qrc
 
 !macx:
 {
-    RC_ICONS = src/res/Eulexis.ico
     data.path = bin/ressources
     data.files =  Eulexis_data/*
-    deploy.depends += install
     INSTALLS += data
-    deploy.commands = windeployqt bin/Eulexis.exe
-    QMAKE_EXTRA_TARGETS += deploy
+    win32|win64:
+    {
+        RC_ICONS = src/res/Eulexis.ico
+        deploy.depends += install
+        deploy.commands = windeployqt bin/Eulexis.exe
+        QMAKE_EXTRA_TARGETS += deploy
+    }
+    linux:
+    {
+        target.path = bin
+        target.file = $$TARGET
+        INSTALLS += target
+    }
 }
 macx:
 {

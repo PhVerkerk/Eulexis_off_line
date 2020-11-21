@@ -7,6 +7,8 @@ It is also compatible with GNU/Linux, so you can compile this software from the 
 
 Installation packages for Mac OS and Windows are downloadable on this page: https://outils.biblissima.fr/en/eulexis/
 
+Under GNU/Linux, provided that you have the Qt libraries installed on your system, build this project from within QtCreator, then run `make install` in the build directory. This will result in the creation of a `bin/` directory in local copy of this repository, containing the `Eulexis` binary and the related ressources folder. You can move and rename this `bin/` directory at your convenience.
+
 ### Update 2020-01-18
 
 ## Vocab-list and OCR correction
