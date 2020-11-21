@@ -34,8 +34,17 @@ RESOURCES += src/Greek_converter.qrc
     data.files =  Eulexis_data/betunicode_gr.csv
     deploy.depends += install
     INSTALLS += data
-    deploy.commands = windeployqt bin/Greek_converter.exe
-    QMAKE_EXTRA_TARGETS += deploy
+    win32|win64:
+    {
+        deploy.commands = windeployqt bin/Greek_converter.exe
+        QMAKE_EXTRA_TARGETS += deploy
+    }
+    linux:
+    {
+        target.path = bin
+        target.file = $$TARGET
+        INSTALLS += target
+    }
 }
 macx:
 {
