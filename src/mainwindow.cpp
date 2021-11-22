@@ -1,7 +1,11 @@
 #include "mainwindow.h"
 
 /**
- * \fn EditLatin::EditLatin (QWidget *parent): QTextEdit (parent)
+ * @file mainwindow.cpp
+ * @brief définition des classes EditLatin et MainWindow
+ */
+
+/**
  * \brief Créateur de la classe EditLatin, dérivée de
  * QTextEdit afin de pouvoir redéfinir l'action
  * connectée au clic de souris sur une ligne.
@@ -15,7 +19,6 @@ EditLatin::EditLatin(QWidget *parent) : QTextEdit(parent)
 }
 
 /**
- * \fn bool EditLatin::event(QEvent *event)
  * \brief Captation du survol de la souris pour
  *        afficher une bulle d'aide.
  *
@@ -111,6 +114,12 @@ void EditLatin::mouseReleaseEvent(QMouseEvent *e)
     QTextEdit::mouseReleaseEvent(e);
 }
 
+/**
+ * @brief Créateur de la classe MainWindow
+ * @param parent : le parent de cette classe
+ *
+ * Cette classe MainWindow crée l'interface graphique GUI pour Eulexis.
+ */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -154,11 +163,22 @@ MainWindow::MainWindow(QWidget *parent)
     _lineEdit->setFocus();
 }
 
+/**
+ * @brief destructeur de la classe MainWindow
+ *
+ * @todo Actuellement vide.
+ */
 MainWindow::~MainWindow()
 {
 
 }
 
+/**
+ * @brief charge les analyses et les traductions
+ *
+ * Comme le chargement prend un peu de temps,
+ * je mets un message dans la barre de "status"
+ */
 void MainWindow::loadLemm()
 {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -172,6 +192,12 @@ void MainWindow::loadLemm()
  * \fn void MainWindow::closeEvent(QCloseEvent *event)
  * \brief Vérifie que le travail est sauvé
  *        avant la fermeture de l'application.
+ *
+ * S'il y a eu des changements depuis la dernière sauvegarde,
+ * j'ouvre une boîte de dialogue qui demande une confirmation.
+ * Voir MainWindow::alerte.
+ * Lorsque la fermeture est confirmée, je sauve les paramètres
+ * essentiels de l'application.
  */
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -229,6 +255,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
+/**
+ * @brief lecture des paramètres essentiels qui ont été
+ * sauvegardés lors de la dernière fermeture.
+ */
 void MainWindow::readSettings()
 {
     QSettings settings("Eulexis", "Eulexis");
@@ -287,9 +317,7 @@ void MainWindow::readSettings()
 }
 
 /**
- * @brief MainWindow::createW
- *
- * Prépare la fenêtre principale.
+ * @brief Prépare la fenêtre principale.
  *
  */
 void MainWindow::createW()
@@ -589,7 +617,7 @@ void MainWindow::createW()
     menuExtra->addAction(actBailly);
     menuExtra->addSeparator();
     menuExtra->addAction(actComInd);
-//    menuExtra->addAction(actVerif);
+    menuExtra->addAction(actVerif);
     // Je commente cette ligne pour l'instant (le 30 mai 2020).
 
     menuAide->addAction(auxAct);
@@ -602,6 +630,9 @@ void MainWindow::createW()
     __lemmatiseur = new Lemmat(_rscrDir);
 }
 
+/**
+ * @brief connecte les @c actions aux @c slots
+ */
 void MainWindow::connecter()
 {
 
@@ -667,9 +698,7 @@ void MainWindow::connecter()
 }
 
 /**
- * @brief MainWindow::aPropos
- *
- * Affiche une fenêtre de dialogue avec les remerciements.
+ * @brief Affiche une fenêtre de dialogue avec les remerciements.
  *
  */
 void MainWindow::aPropos()
@@ -693,6 +722,9 @@ void MainWindow::aPropos()
 
 }
 
+/**
+ * @brief mise à jour des analyses
+ */
 void MainWindow::majA()
 {
     QString nomFichier =
@@ -725,8 +757,13 @@ void MainWindow::majA()
     }
 }
 
+/**
+ * @brief mise à jour des traductions
+ */
 void MainWindow::majT()
 {
+//    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
+//    __lemmatiseur->repairTransl("");
 /*    // Provisoirement j'utilise ce slot pour réparer les traductions
     QString nomFichier =
             QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"TXT files (*.txt)");
@@ -765,6 +802,24 @@ void MainWindow::majT()
     }
 }
 
+/**
+ * @brief mise à jour du LSJ
+ *
+ * Cette routine ouvre une boîte de dialogue pour trouver
+ * la **copie de travail** du dictionnaire et l'installer
+ * à la place de la version précédente.
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine recopie la copie de travail
+ * au bon endroit et appelle Lemmat::majLSJ qui
+ * va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void MainWindow::majL()
 {
     QString nomFichier =
@@ -799,6 +854,24 @@ void MainWindow::majL()
     }
 }
 
+/**
+ * @brief mise à jour de l'abrégé du Bailly
+ *
+ * Cette routine ouvre une boîte de dialogue pour trouver
+ * la **copie de travail** du dictionnaire et l'installer
+ * à la place de la version précédente.
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine recopie la copie de travail
+ * au bon endroit et appelle Lemmat::majAbrBailly qui
+ * va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void MainWindow::majAB()
 {
     QString nomFichier =
@@ -833,6 +906,24 @@ void MainWindow::majAB()
     }
 }
 
+/**
+ * @brief mise à jour du Bailly
+ *
+ * Cette routine ouvre une boîte de dialogue pour trouver
+ * la **copie de travail** du dictionnaire et l'installer
+ * à la place de la version précédente.
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine recopie la copie de travail
+ * au bon endroit et appelle Lemmat::majBailly qui
+ * va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void MainWindow::majB()
 {
     QString nomFichier =
@@ -867,6 +958,24 @@ void MainWindow::majB()
     }
 }
 
+/**
+ * @brief mise à jour du Pape
+ *
+ * Cette routine ouvre une boîte de dialogue pour trouver
+ * la **copie de travail** du dictionnaire et l'installer
+ * à la place de la version précédente.
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine recopie la copie de travail
+ * au bon endroit et appelle Lemmat::majPape qui
+ * va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void MainWindow::majP()
 {
     QString nomFichier =
@@ -901,11 +1010,19 @@ void MainWindow::majP()
     }
 }
 
+/**
+ * @brief mise à jour de l'index commun
+ *
+ * Renvoie directement sur Lemmat::indexCommun
+ */
 void MainWindow::majC()
 {
     __lemmatiseur->indexCommun();
 }
 
+/**
+ * @brief efface le texte dans la deuxième fenêtre
+ */
 void MainWindow::nouveau()
 {
     _texte->clear();
@@ -917,6 +1034,9 @@ void MainWindow::nouveau()
     _second->raise();
 }
 
+/**
+ * @brief ouvre un texte dans la deuxième fenêtre
+ */
 void MainWindow::ouvrir()
 {
     nouveau();
@@ -952,6 +1072,13 @@ void MainWindow::ouvrir()
     }
 }
 
+/**
+ * @brief sauve le travail en cours
+ * @param nomFichier : le nom sous lequel sauver le fichier
+ *
+ * Si le nom de fichier est vide, on ouvre une fenêtre de dialogue
+ * pour choisir le nom du fichier.
+ */
 void MainWindow::sauver(QString nomFichier)
 {
     if (nomFichier.isEmpty()) nomFichier =
@@ -977,16 +1104,25 @@ void MainWindow::sauver(QString nomFichier)
     }
 }
 
+/**
+ * @brief avance à l'article suivant des dictionnaires
+ */
 void MainWindow::avance()
 {
     consulter(_avant->text());
 }
 
+/**
+ * @brief recule à l'article précédent des dictionnaires
+ */
 void MainWindow::recule()
 {
     consulter(_apres->text());
 }
 
+/**
+ * @brief revient au dernier mot cherché dans les dictionnaires
+ */
 void MainWindow::backward()
 {
     if (_histItem < _historique.size() - 1)
@@ -999,6 +1135,12 @@ void MainWindow::backward()
     }
 }
 
+/**
+ * @brief avance dans l'historique de consultation
+ *
+ * On ne peut avancer dans l'historique que si on est revenu en arrière
+ * auparavant.
+ */
 void MainWindow::forward()
 {
     if (_histItem > 0)
@@ -1011,6 +1153,9 @@ void MainWindow::forward()
     }
 }
 
+/**
+ * @brief efface l'historique
+ */
 void MainWindow::effaceHist()
 {
     _historique.clear();
@@ -1019,6 +1164,17 @@ void MainWindow::effaceHist()
     actionBackward->setDisabled(true);
 }
 
+/**
+ * @brief pour consulter les dictionnaires
+ * @param f : le lemme recherché
+ * @param ajoute : un booléen, @c true par défaut, pour ajouter le mot cherché dans l'historique
+ *
+ * Cette routine affiche, dans la fenêtre principale, les articles
+ * des dictionnaires sélectionnés qui correspondent au lemme demandé.
+ *
+ * Quand on voyage dans l'historique, il ne faut pas y ajouter de nouveaux items
+ * donc @a ajoute sera @c false.
+ */
 void MainWindow::consulter(QString f, bool ajoute)
 {
     if (f.isEmpty()) f = _lineEdit->text().toLower();
@@ -1158,13 +1314,6 @@ void MainWindow::consulter(QString f, bool ajoute)
             res.append(morceau);
         }
         else res.append(donnees.join("\n<br />"));
-        /*    QString bla = "<html><head><style>";
-            bla.append(".ital{font-style: italic;}");
-            bla.append("</style></head><body>");
-            bla.append("<p>miaou </p>");
-            bla.append("<p class=\"ital\"> meuh</p>");
-            bla.append("</body></html>");
-            _texte->setHtml(bla);*/
         _txtEdit->setHtml(_entete + res + liens + "</body></html>");
 //        _txtEdit->setHtml(res + liens);
     }
@@ -1172,6 +1321,11 @@ void MainWindow::consulter(QString f, bool ajoute)
     _lineEdit->setFocus();
 }
 
+/**
+ * @brief pour afficher une bulle d'aide avec la lemmatisation du mot sous le curseur
+ * @param mot : le mot sous le curseur
+ * @return le contenu de la bulle d'aide à afficher
+ */
 QString MainWindow::bulle(QString mot)
 {
     // mot a été sélectionné par QTextCursor::WordUnderCursor
@@ -1206,6 +1360,12 @@ QString MainWindow::bulle(QString mot)
     return res;
 }
 
+/**
+ * @brief affiche la lemmatisation de la forme dans la troisième fenêtre
+ * @param f : la forme à lemmatiser
+ *
+ * Si la forme @a f est vide, on prend le contenu de la ligne de saisie de la fenêtre.
+ */
 void MainWindow::lemmatiser(QString f)
 {
     if (__lemmatiseur->toInit()) __lemmatiseur->initData();
@@ -1240,6 +1400,21 @@ void MainWindow::lemmatiser(QString f)
     _lemEdit->moveCursor(QTextCursor::End);
 }
 
+/**
+ * @brief actualise le contenu de la deuxième ligne de saisie et celui des boutons associés.
+ *
+ * Il y a deux lignes de saisie dans Eulexis : une dans la fenêtre principale
+ * et une deuxième dans la fenêtre de lemmatisation. Leur contenu est synchronisé.
+ * Les boutons à droite de ces lignes de saisie donne ce contenu
+ * en caractères grecs et il est également actualisé.
+ *
+ * @note La validation de l'une des lignes de saisie modifie
+ * la fenêtre qui la contient (i.e. consultation des dictionnaires
+ * pour la première et lemmatisation pour la seconde).
+ * Un clic sur l'un des boutons modifie l'autre fenêtre
+ * (i.e. consultation des dictionnaires pour un clic sur le second bouton
+ * et lemmatisation pour un clic sur le premier).
+ */
 void MainWindow::actualiser()
 {
     int i = _lineEdit->cursorPosition();
@@ -1256,6 +1431,21 @@ void MainWindow::actualiser()
     _lineEdit->setCursorPosition(i);
 }
 
+/**
+ * @brief actualise le contenu de la première ligne de saisie et celui des boutons associés.
+ *
+ * Il y a deux lignes de saisie dans Eulexis : une dans la fenêtre principale
+ * et une deuxième dans la fenêtre de lemmatisation. Leur contenu est synchronisé.
+ * Les boutons à droite de ces lignes de saisie donne ce contenu
+ * en caractères grecs et il est également actualisé.
+ *
+ * @note La validation de l'une des lignes de saisie modifie
+ * la fenêtre qui la contient (i.e. consultation des dictionnaires
+ * pour la première et lemmatisation pour la seconde).
+ * Un clic sur l'un des boutons modifie l'autre fenêtre
+ * (i.e. consultation des dictionnaires pour un clic sur le second bouton
+ * et lemmatisation pour un clic sur le premier).
+ */
 void MainWindow::actualiser2()
 {
     int i = _lineEdit2->cursorPosition();
@@ -1272,6 +1462,15 @@ void MainWindow::actualiser2()
     _lineEdit2->setCursorPosition(i);
 }
 
+/**
+ * @brief convertit les caractères latins en caractères grecs
+ * @param f : une chaine en caractères latins
+ * @return la même chaine en caractères grecs
+ *
+ * Version moins élaborée que la conversion de betacode en unicode
+ * puisqu'elle ne gère pas les signes diacritiques. Plus rapide ?
+ * Voir Lemmat::beta2unicode
+ */
 QString MainWindow::latin2greek(QString f)
 {
     if (f.endsWith("s"))
@@ -1339,6 +1538,12 @@ QString MainWindow::latin2greek(QString f)
     return f;
 }
 
+/**
+ * @brief groupe le choix des dictionnaires en un entier
+ * @return un entier entre 0 et 15
+ *
+ * @deprecated ne semble pas utilisée
+ */
 int MainWindow::lireOptions()
 {
     int opt=0;
@@ -1349,6 +1554,9 @@ int MainWindow::lireOptions()
     return opt;
 }
 
+/**
+ * @brief efface le contenu de la fenêtre de lemmatisation
+ */
 void MainWindow::effaceRes()
 {
     bool lire = true;
@@ -1362,6 +1570,32 @@ void MainWindow::effaceRes()
     }
 }
 
+/**
+ * @brief suit le lien
+ * @param url : l'adresse du lien
+ *
+ * Dans la fenêtre de consultation des dictionnaires et
+ * dans la fenêtre de lemmatisation, j'ai mis des liens
+ * que je dois interpréter. Dans la fenêtre de lemmatisation,
+ * les liens sont sur les lemmes et si on clique dessus,
+ * ils conduisent à la consultation des dictionnaires pour
+ * le lemme cliqué.
+ *
+ * Dans la fenêtre de consultation des dictionnaires,
+ * c'est plus compliqué car il y a plusieurs types de liens :
+ * * liens vers une ancre dans la page
+ * * renvois vers un autre mot (donc consultation des dictionnaires)
+ * * explicitation des références dans le LSJ
+ *
+ * @todo Dans le LSJ et dans le Bailly, j'ai l'explicitation
+ * des références aux œuvres citées. Je ne l'ai pas pour
+ * les deux autres dictionnaires.
+ * Dans le LSJ, je cherche lors de l'affichage si je reconnais
+ * une citation auquel cas je mets un lien qui l'explicite.
+ * C'est un travail que je n'ai pas encore fait pour le Bailly.
+ * Cela dit, je pourrais mettre des repères dans le fichier HTML
+ * du Bailly, plutôt que de chercher a posteriori les références...
+ */
 void MainWindow::suivreLien(QUrl url)
 {
     QString lien = url.toString();
@@ -1379,7 +1613,10 @@ void MainWindow::suivreLien(QUrl url)
         lien.replace("%7C","|");
 //        qDebug() << lien << __lemmatiseur->beta2unicode(lien,false);
         QChar ch = lien[lien.size()-1];
-        if (ch.category() == QChar::Number_DecimalDigit) lien.chop(1);
+        if ((ch.category() == QChar::Number_DecimalDigit) && !lien.contains("#"))
+            lien.chop(1);
+        // Il y avait un problème si le renvoi contenait un indice d'homonymie.
+        // Que j'ai corrigé, mais qui a empêché la consultation des articles du genre "stigma" = ϛ = #2
         consulter(__lemmatiseur->beta2unicode(lien,false));
     }
     // Normalement, c'est un # pour aller à une ancre.
@@ -1387,6 +1624,11 @@ void MainWindow::suivreLien(QUrl url)
     // j'ai mis des "§" dans les liens pour faire les renvois.
 }
 
+/**
+ * @brief valider ?
+ *
+ * @deprecated fonction vide et non utilisée
+ */
 void MainWindow::valider()
 {
 //    if (consAct->isChecked()) consulter();
@@ -1394,9 +1636,7 @@ void MainWindow::valider()
 }
 
 /**
- * @brief MainWindow::createSecond
- *
- * Création d'un EditLatin pour afficher le texte.
+ * @brief Création d'un EditLatin pour afficher le texte.
  *
  */
 void MainWindow::createSecond()
@@ -1431,6 +1671,9 @@ void MainWindow::createSecond()
     _second->setWindowIcon(QIcon(":/res/Eulexis.png"));
 }
 
+/**
+ * @brief création d'une troisième fenêtre, pour la lemmatisation
+ */
 void MainWindow::createTrois()
 {
     _trois = new QWidget();
@@ -1470,6 +1713,9 @@ void MainWindow::createTrois()
     _trois->setWindowIcon(QIcon(":/res/Eulexis.png"));
 }
 
+/**
+ * @brief montrer/masquer la deuxième fenêtre (pour le texte)
+ */
 void MainWindow::montrer()
 {
     if (_second->isVisible())
@@ -1484,6 +1730,9 @@ void MainWindow::montrer()
     }
 }
 
+/**
+ * @brief montrer/masquer la troisième fenêtre (pour la lemmatisation)
+ */
 void MainWindow::montrer3()
 {
     if (_trois->isVisible())
@@ -1499,6 +1748,19 @@ void MainWindow::montrer3()
     }
 }
 
+/**
+ * @brief lemmatisation du texte avec les mots dans l'ordre alphabétique
+ *
+ * Le texte contenu dans la deuxième fenêtre est décomposé en mots
+ * qui sont rangés en ordre alphabétique sans tenir compte des signes diacritiques.
+ * Le contenu de la troisième fenêtre (fenêtre de lemmatisation) est effacé
+ * et remplacé par le résultat de la lemmatisation des mots du texte
+ * préalablement ordonnés.
+ *
+ * @note L'option TextiColor n'a pas d'effet ici :
+ * le texte de la deuxième fenêtre reste inchangé.
+ * @todo reprendre dans Collatinus l'élimination des chiffres collés aux mots.
+ */
 void MainWindow::lemmatAlpha()
 {
 //    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -1576,6 +1838,19 @@ void MainWindow::lemmatAlpha()
 //    QApplication::restoreOverrideCursor();
 }
 
+/**
+ * @brief lemmatisation du texte en respectant l'ordre des mots
+ *
+ * Le texte contenu dans la deuxième fenêtre est décomposé en mots.
+ * Le contenu de la troisième fenêtre (fenêtre de lemmatisation) est effacé
+ * et remplacé par le résultat de la lemmatisation des mots du texte.
+ *
+ * Si les deux options "formes exactes" et "TextiColor" sont activées,
+ * le texte colorisé remplace le texte d'origine dans la deuxième fenêtre.
+ * @note Moyennant un peu d'effort, on doit pouvoir lever la contrainte
+ * sur l'option "formes exactes" pour que le texte soit colorisé.
+ * @todo reprendre dans Collatinus l'élimination des chiffres collés aux mots.
+ */
 void MainWindow::lemmatTxt()
 {
 //    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -1674,6 +1949,20 @@ void MainWindow::lemmatTxt()
 //    QApplication::restoreOverrideCursor();
 }
 
+/**
+ * @brief ouvre un fichier txt et produit un fichier csv avec sa lemmatisaton.
+ *
+ * Cette routine ouvre une fenêtre de dialogue pour choisir un fichier @c txt.
+ * Ce texte est lu et lemmatisé avec seulement le lemme, pas l'analyse.
+ * L'ensemble des lemmatisations est mis dans un fichier csv.
+ *
+ * @note Lorsque l'option "TextiColor" est activée, un fichier HTML
+ * est également créé avec le texte colorisé.
+ * @todo David Carter m'a signalé un problème lorsque le fichier d'analyses
+ * donne la forme (avec longueurs) en plus du lemme.
+ * Il ne voudrait conserver que le lemme.
+ * Ici ou dans Lemmat::lem2csv
+ */
 void MainWindow::txt2csv()
 {
     QString nomFichier =
@@ -1702,7 +1991,7 @@ void MainWindow::txt2csv()
     fluxL.setCodec("UTF-8");
 // Je suis prêt à écrire des choses dans fluxL
     if (actionBOM->isChecked()) fluxL << "\ufeff";
-    fluxL << "Att\tSeq\tLine\tNumW\tForm\tLemma\tMeaning\tBetacode\tBetaWithout\n";
+    fluxL << "Att\tSeq\tLine\tNumW\tForm\tLemma\tMeaning\tFormBeta\tLemmaBeta\tLemmaWithout\n";
 
     QStringList lm = txt.split(_reWordBoundary);
     // lm est la liste des mots avec les séparateurs.
@@ -1750,7 +2039,7 @@ void MainWindow::txt2csv()
         }
         if (mot.contains(QRegExp("\\d")))
         {
-            fluxL << "\t" << nEl << "\t\t\t" << mot << "\n";
+            fluxL << "\t" << nEl << "\t\t\t" << mot << "\t\t\t\t\t\n";
             // Si j'ai un nombre, je le mets dans la liste sans y toucher.
             nEl += 1;
         }
@@ -1777,7 +2066,7 @@ void MainWindow::txt2csv()
             }
             if (llem.isEmpty())
             {
-                fluxL << "*\t" << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\tUnknown\n";
+                fluxL << "*\t" << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\tUnknown\t\t\t\t\n";
                 nEl += 1;
                 // Le mot est inconnu : en rouge et en gras !
                 lm[i+1].prepend("</font></b>");
@@ -1811,15 +2100,28 @@ void MainWindow::txt2csv()
                         if (!exact) fluxL << " (" << eclats[0] << ")";
                         // Si la forme trouvée n'est pas exactement celle du texte,
                         // je donne la forme trouvée entre parenthèses.
-                        if (eclats[ii].contains("-"))
+/*                        if (eclats[ii].contains("-"))
                             fluxL << "\t" << __lemmatiseur->traduction(eclats[ii].section("-",1)) << "\t";
                         // Pour les composés explicites, on ne donne que la traduction de la racine.
                         else if (eclats[ii].contains(","))
                             fluxL << "\t" << __lemmatiseur->traduction(eclats[ii].section(",",1)) << "\t";
                         // S'il y a une virgule, mais pas de -, le lemme est après la virgule.
                         else
+                            // Je transfers ces tests dans la fonction de traduction
+                            */
                             fluxL << "\t" << __lemmatiseur->traduction(eclats[ii]) << "\t";
-                        fluxL << eclats[ii] << "\t" << __lemmatiseur->nettoie2(eclats[ii]) << "\n";
+                        // Ajouter la forme en betacode
+                        fluxL << __lemmatiseur->uni2betacode(mot) << "\t";
+                        if (eclats[ii].contains("-"))
+                            fluxL << eclats[ii].section("-",1) << "\t"
+                                  << __lemmatiseur->nettoie2(eclats[ii].section("-",1)) << "\n";
+                        // Pour les composés explicites, on ne donne que la traduction de la racine.
+                        else if (eclats[ii].contains(","))
+                            fluxL << eclats[ii].section(",",1) << "\t"
+                                  << __lemmatiseur->nettoie2(eclats[ii].section(",",1)) << "\n";
+                        // S'il y a une virgule, mais pas de -, le lemme est après la virgule.
+                        else
+                            fluxL << eclats[ii] << "\t" << __lemmatiseur->nettoie2(eclats[ii]) << "\n";
                         nEl += 1;
                     }
                 }
@@ -1852,11 +2154,24 @@ void MainWindow::txt2csv()
                     {
                         if (taille > 1) fluxL << "*\t";
                         else fluxL << "\t";
-                        fluxL << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\t"
-                              << __lemmatiseur->beta2unicode(lem, _beta->isChecked()) ;
+                        fluxL << nEl << "\t" << numLigne << "\t" << numMot << "\t" << mot << "\t";
+                        QString bla = __lemmatiseur->beta2unicode(lem, _beta->isChecked());
+                        bla.replace("σ,","ς,");
+                        fluxL << bla;
                         fluxL << " (" << mapLem[lem] << ")";
                         fluxL << "\t" << __lemmatiseur->traduction(lem) << "\t";
-                        fluxL << lem << "\t" << __lemmatiseur->nettoie2(lem) << "\n";
+                        // Ajouter la forme en betacode
+                        fluxL << __lemmatiseur->uni2betacode(mot) << "\t";
+                        if (lem.contains("-"))
+                            fluxL << lem.section("-",1) << "\t"
+                                  << __lemmatiseur->nettoie2(lem.section("-",1)) << "\n";
+                        // Pour les composés explicites, on ne donne que la traduction de la racine.
+                        else if (lem.contains(","))
+                            fluxL << lem.section(",",1) << "\t"
+                                  << __lemmatiseur->nettoie2(lem.section(",",1)) << "\n";
+                        // S'il y a une virgule, mais pas de -, le lemme est après la virgule.
+                        else
+                            fluxL << lem << "\t" << __lemmatiseur->nettoie2(lem) << "\n";
                         nEl += 1;
                     }
                 }
@@ -1906,24 +2221,36 @@ void MainWindow::txt2csv()
            "<b>Then</b> open it in Excel.\n"));
 }
 
+/**
+ * @brief met l'allemand comme langue cible
+ */
 void MainWindow::lAlld()
 {
     __lemmatiseur->setCible(2);
     _lang = 2;
 }
 
+/**
+ * @brief met l'anglais comme langue cible
+ */
 void MainWindow::lAngl()
 {
     __lemmatiseur->setCible(0);
     _lang = 0;
 }
 
+/**
+ * @brief met le français comme langue cible
+ */
 void MainWindow::lFr()
 {
     __lemmatiseur->setCible(1);
     _lang = 1;
 }
 
+/**
+ * @brief met au premier plan la fenêtre de consultation
+ */
 void MainWindow::avCons()
 {
     raise();
@@ -1931,6 +2258,9 @@ void MainWindow::avCons()
     _lineEdit->setFocus();
 }
 
+/**
+ * @brief met au premier plan la fenêtre de texte (l'ouvre si nécessaire)
+ */
 void MainWindow::avTxt()
 {
     if (_second->isVisible())
@@ -1945,6 +2275,9 @@ void MainWindow::avTxt()
     }
 }
 
+/**
+ * @brief met au premier plan la fenêtre de lemmatisation (l'ouvre si nécessaire)
+ */
 void MainWindow::avLem()
 {
     if (_trois->isVisible())
@@ -1961,25 +2294,26 @@ void MainWindow::avLem()
 }
 
 /**
- * @brief MainWindow::alerte
+ * @brief Dialogue pour confirmer la fermeture
  * @param sauv : un booléen qui détermine le bouton par défaut
  * @return un booléen pour dire si on continue ou pas.
  *
  * Si on souhaite quitter le programme ou charger un nouveau texte
  * sans avoir sauvé le travail précédent, on affiche une boîte
  * de dialogue pour proposer de sauver le travail.
+ * Elle propose trois boutons "Annuler", "Sauver" et "Ne pas sauver".
  *
- * Si on clique sur le bouton "Annuler", la fonction retourne false
+ * * Si on clique sur le bouton "Annuler", la fonction retourne false
  * et l'appelant doit en tenir compte (et ne rien faire).
  *
- * Si on clique sur "Sauver", la routine MainWindow::sauver() est appelée
+ * * Si on clique sur "Sauver", la routine MainWindow::sauver() est appelée
  * avant de retourner la valeur true, sans chercher à savoir
  * si la sauvegarde a bien été faite.
  *
- * Si on clique sur "Ne pas sauver", on retourne true sans
+ * * Si on clique sur "Ne pas sauver", on retourne true sans
  * autre forme de procès.
  *
- * Si le paramètre sauv est true, le bouton par défaut est "sauver".
+ * Si le paramètre @a sauv est true, le bouton par défaut est "Sauver".
  * Sinon, c'est "Ne pas sauver" qui est le bouton par défaut.
  *
  */
@@ -2002,6 +2336,9 @@ bool MainWindow::alerte(bool sauv)
     return true;
 }
 
+/**
+ * @brief ouvre une boîte de dialogue pour le choix de la police et l'applique
+ */
 void MainWindow::choixPolice()
 {
     bool ok;
@@ -2023,8 +2360,10 @@ void MainWindow::choixPolice()
     }
 }
 /**
- * \fn
- * \brief
+ * \brief exporte en pdf le contenu de la fenêtre de lemmatisation
+ *
+ * Ouvre une fenêtre de dialogue pour choisir le nom du fichier à créer.
+ * Le contenu de la fenêtre de lemmatisation est imprimé dans le fichier sus-nommé.
  *
  */
 void MainWindow::exportPdf()
@@ -2048,7 +2387,6 @@ void MainWindow::exportPdf()
 }
 
 /**
- * \fn void MainWindow::imprimer()
  * \brief Lance le dialogue d'impression pour la lemmatisation.
  */
 void MainWindow::imprimer()
@@ -2071,6 +2409,14 @@ void MainWindow::imprimer()
 #endif
 }
 
+/**
+ * @brief cherche une chaine dans la fenêtre active
+ *
+ * Cette routine ouvre une boîte de dialogue pour savoir
+ * quelle chaine chercher et appelle MainWindow::rechercher.
+ * En pratique, elle est appelée par l'item du menu Édition/Chercher
+ * ou par Ctrl-F.
+ */
 void MainWindow::chercher()
 {
     bool ok;
@@ -2095,6 +2441,15 @@ void MainWindow::chercher()
     }*/
 }
 
+/**
+ * @brief poursuit la recherche
+ *
+ * La chaine à chercher est déjà connue.
+ * Cette routine fait la recherche dans la fenêtre active.
+ * En pratique, elle est appelée par l'item du menu
+ * Édition/Chercher encore ou par Ctrl-G.
+ * C'est aussi la deuxième étape de MainWindow::chercher.
+ */
 void MainWindow::rechercher()
 {
     if (rech.isEmpty()) return;
@@ -2152,11 +2507,36 @@ void MainWindow::rechercher()
     }
 }
 
+/**
+ * @brief compare deux chaines en caractères grecs
+ * sans tenir compte des signes diacritiques.
+ * @param g1 : une chaine en caractères grecs
+ * @param g2 : une chaine en caractères grecs
+ * @return @c true si @a g1 vient avant @a g2
+ *
+ * La comparaison habituelle de deux chaines de caractères passe par
+ * l'ordre des codes numériques associés aux lettres.
+ * donc β (03B2) vient avant ά (1F71) or on voudrait ranger
+ * tous les α, qu'ils aient un esprit ou un accent ou pas,
+ * avant de passer à β.
+ */
 bool MainWindow::plusPetit(QString g1, QString g2)
 {
     return (latin2greek(__lemmatiseur->nettoie(g1)) < latin2greek(__lemmatiseur->nettoie(g2)));
 }
 
+/**
+ * @brief évalue la longueur de chaque article d'un même dictionnaire
+ * @param sl : une liste de chaine contenant les articles
+ * @return @c true si l'un des articles dépasse la longueur d'une page
+ *
+ * Cette fonction est utile pour savoir s'il faut intercaler la liste de liens
+ * entre les différents articles de dictionnaire.
+ * Si tous les articles d'un dictionnaire donné sont courts,
+ * on peut les grouper sans mettre de ligne de liens entre deux articles.
+ * Si dans l'ensemble des articles que l'on veut afficher il y en a des longs,
+ * on va essayer de faire des groupes pour avoir une ligne de liens de temps en temps.
+ */
 bool MainWindow::longs(QStringList sl)
 {
     for (int i=0; i<sl.size();i++)
@@ -2168,79 +2548,263 @@ bool MainWindow::longs(QStringList sl)
     return false;
 }
 
+/**
+ * @brief ouvre l'index de l'aide utilisateur (dans le navigateur par défaut)
+ */
 void MainWindow::auxilium()
 {
     QDesktopServices::openUrl(QUrl("file:" + qApp->applicationDirPath() + "/Aide/index.html"));
 }
 
+/**
+ * @brief affiche à nouveau la barre d'outils
+ */
 void MainWindow::toolsRestore()
 {
     mainToolBar->show();
 }
 
-void MainWindow::dSkip()
+/********
+ * D'ici à la fin, j'ai mis les fonctions et routines qui servent
+ * à la vérification des traductions.
+ * Je ne sais pas encore si les laisser dans la version publiée...
+ * ******/
+
+/*void MainWindow::dSkip()
 {
     // Rien ?
+    opCode = -2;
     dNext();
-//    dVerif->close();
-}
+}*/
 
-void MainWindow::dValid()
+/**
+ * @brief annule les modifications faites pour le lemme en cours
+ *
+ * Ce @c slot est appelé quand on clique sur le bouton "Cancel".
+ * Il ouvre une fenêtre de dialogue pour demander une confirmation.
+ * Si on est revenu en arrière sur un lemme pour lequel le choix
+ * a été validé, on peut revenir aux données initiales ou aux
+ * données validées la première fois (et annuler seulement les dernières modifs).
+ */
+void MainWindow::dUndo()
 {
-    // J'ai appuyé sur le bouton de validation
-    // Sauver les données recueillies
-    QString f = "%1\t%2\t%3\t%4\n";
-    QString lg = f.arg(dLemme->text()).arg(dBeta->text()).arg(dOld->text()).arg(dLine->text());
-    dFichier.write(lg.toUtf8());
-    dNext();
-//    dVerif->close();
+    // J'ai appuyé sur le bouton d'annulation
+    if (lg_Old.isEmpty()) // lgMod[numLem] = lgOrig[numLem];
+    {
+        QMessageBox attention(QMessageBox::Warning,tr("Annuler les modifs"),
+                              tr("Vous allez perdre les modifs !"));
+        QPushButton *revButton =
+                attention.addButton(tr("Continuer"), QMessageBox::ActionRole);
+        QPushButton *annulerButton =
+                attention.addButton(tr("Annuler"), QMessageBox::ActionRole);
+        attention.setDefaultButton(annulerButton);
+        attention.exec();
+        if (attention.clickedButton() == revButton)
+        {
+            lgMod[numLem] = lgOrig[numLem];
+            opCode = 100;
+            dAffiche(lgMod[numLem]);
+        }
+    }
+    else
+    {
+        QMessageBox attention(QMessageBox::Warning,tr("Annuler les modifs"),
+                              tr("Vous allez perdre les modifs !"));
+        attention.setInformativeText("Quelles données reprendre ?");
+        QPushButton *origButton =
+                attention.addButton(tr("Originales"), QMessageBox::ActionRole);
+        QPushButton *revButton =
+                attention.addButton(tr("Revues"), QMessageBox::ActionRole);
+        QPushButton *annulerButton =
+                attention.addButton(tr("Annuler"), QMessageBox::ActionRole);
+        attention.setDefaultButton(annulerButton);
+        attention.exec();
+        if (attention.clickedButton() == revButton)
+        {
+            lgMod[numLem] = lgOrig[numLem];
+            opCode = 100;
+            dAffiche(lgMod[numLem]);
+        }
+        else if (attention.clickedButton() == origButton)
+        {
+            lgMod[numLem] = lg_Old[numLem];
+            opCode = 50;
+            dAffiche(lgMod[numLem]);
+        }
+    }
 }
 
+/**
+ * @brief sauve les choix déjà faits et propose de continuer ou d'arrêter.
+ *
+ * Ce @c slot est appelé quand on a cliqué sur le bouton "Save".
+ * Il sauve l'ensemble des choix déjà faits, tout en conservant
+ * l'état précédent du fichier de sortie (en le renommant en .bak).
+ * Une fois que le fichier est sauvé, il ouvre une boîte de dialogue
+ * pour demander ce que l'on souhaite faire. Le choix se résume à
+ * continuer ou à arrêter.
+ * @note A priori, il n'est pas utile de sauver le travail en cours.
+ * La sauvegarde est automatique quand on arrive à la fin du fichier
+ * et les fichiers sont suffisamment courts pour qu'ils puissent être
+ * revus en une séance de travail. Toutefois, si on doit interrompre
+ * son travail, il vaut toujours mieux sauver ce qui a déjà été fait.
+ */
 void MainWindow::dSave()
 {
-    dValid();
+    QString lg = dNomFic;
+    lg.replace(".csv",".bak");
+    if (QFile::exists(dNomFic))
+    {
+        QFile::remove(lg);
+        QFile::rename(dNomFic,lg);
+    }
+    // Si le fichier existait, je le renomme en .bak
+    QFile dFichier(dNomFic);
+    dFichier.open (QIODevice::WriteOnly|QIODevice::Text);
+    for (int i = 0; i < nbLem; i++)
+    {
+        lg = lgMod[i] + "\n";
+        dFichier.write(lg.toUtf8());
+    }
+    lg = dFichier.fileName() + "\t";
+    lg.append(QDateTime::currentDateTime().toString("yy MM dd HH mm\n"));
+    dFichier.write(lg.toUtf8());
     dFichier.close();
-    dFichier.open(QIODevice::Append|QIODevice::Text);
+    if (numLem < nbLem)
+    {
+        QMessageBox attention(QMessageBox::Warning,tr("Fichier sauvé !"),
+                              tr("Fichier sauvé !"));
+        attention.setInformativeText("Que souhaitez-vous faire ?");
+        QPushButton *fermerButton =
+                attention.addButton(tr("Fermer"), QMessageBox::ActionRole);
+        QPushButton *continuerButton =
+                attention.addButton(tr("Continuer"), QMessageBox::ActionRole);
+        attention.setDefaultButton(continuerButton);
+        attention.exec();
+        if (attention.clickedButton() == fermerButton) dVerif->hide();
+        //dVerif->close();
+    }
 }
 
+/**
+ * @brief crée la fenêtre pour vérifier les traductions et connecte les boutons aux @c slots
+ */
 void MainWindow::dSetUp()
 {
-//    qDebug() << "J'entre";
     dVerif = new QDialog(this);
     QLabel *tLemme = new QLabel("Lemme : ");
     QLabel *tBeta = new QLabel("Betacode : ");
-    QLabel *tTrad = new QLabel("Traduction : ");
+    QLabel *tEul = new QLabel("Eulexis : ");
+    QLabel *tEn = new QLabel("En : ");
+    QLabel *tFr = new QLabel("Fr : ");
+    QLabel *tDe = new QLabel("De : ");
+    QLabel *tB = new QLabel("Bailly : ");
+    QLabel *tC = new QLabel("Commentaire : ");
     dLemme = new QLabel();
     dBeta = new QLabel();
-    dOld = new QLabel();
-    dLine = new QLineEdit();
-    dLine->setMinimumWidth(400);
+    dLemAp = new QLabel();
+    dLemAv = new QLabel();
+    dTrAp = new QLabel();
+//    dTrAp->setMinimumWidth(240);
+//    dTrAp->setMaximumWidth(241);
+    dTrAv = new QLabel();
+//    dTrAv->setMinimumWidth(240);
+//    dTrAv->setMaximumWidth(241);
+    dNb = new QLabel();
+    dNum = new QLabel();
+//    dOld = new QLabel();
+//    dTrB = new QLineEdit();
+    dTrB = new QTextEdit();
+    dTrB->setMinimumWidth(500);
+    dTrB->setMinimumHeight(50);
+    dTrB->setMaximumHeight(100);
+
+    dTrEn = new QLineEdit();
+    dTrEn->setMinimumWidth(400);
+    dTrEn->setMaximumWidth(401);
+    dTrFr = new QLineEdit();
+    dTrFr->setMinimumWidth(400);
+    dTrDe = new QLineEdit();
+    dTrDe->setMinimumWidth(400);
+    dComment = new QLineEdit();
+    dComment->setMinimumWidth(400);
 //    qDebug() << dLine->minimumWidth();
 
-    QPushButton *skipButton = new QPushButton(tr("Skip"));
-    QPushButton *validButton = new QPushButton(tr("Valid"));
+    dLemB = new QComboBox();
+    dLemB->setMinimumWidth(400);
+    dLemB->setMinimumHeight(20);
+
+    choixBailly = new QRadioButton("Valider trad Bailly",this);
+    choixEulexis = new QRadioButton("Valider trad Eulexis",this);
+    choixRemis = new QRadioButton("Remettre le choix",this);
+    QHBoxLayout *hLayout0 = new QHBoxLayout;
+    hLayout0->addWidget(choixBailly);
+    hLayout0->addWidget(choixEulexis);
+    hLayout0->addWidget(choixRemis);
+
+    previousButton = new QPushButton(tr("Previous"));
+    nextButton = new QPushButton(tr("Valid and Next"));
+    QPushButton *undoButton = new QPushButton(tr("Undo"));
     QPushButton *saveButton = new QPushButton(tr("Save"));
-    validButton->setDefault(true);
-    connect(validButton, SIGNAL(clicked()), this, SLOT(dValid()));
-    connect(skipButton, SIGNAL(clicked()), this, SLOT(dSkip()));
+    previousButton->setMinimumWidth(150);
+    previousButton->setMaximumWidth(151);
+    nextButton->setMinimumWidth(180);
+    nextButton->setMaximumWidth(181);
+    nextButton->setDefault(true);
+    connect(nextButton, SIGNAL(clicked()), this, SLOT(dNext()));
+    connect(previousButton, SIGNAL(clicked()), this, SLOT(dPrev()));
+    connect(undoButton, SIGNAL(clicked()), this, SLOT(dUndo()));
     connect(saveButton, SIGNAL(clicked()), this, SLOT(dSave()));
+    connect(dLemB, SIGNAL(currentIndexChanged(int)), this,
+            SLOT(dChgLem(int)));
+
+//    connect(dTrEn, SIGNAL(returnPressed()), this, SLOT(dNext()));
+//    connect(dTrFr, SIGNAL(returnPressed()), this, SLOT(dNext()));
+//    connect(dTrDe, SIGNAL(returnPressed()), this, SLOT(dNext()));
+//    connect(dComment, SIGNAL(returnPressed()), this, SLOT(dNext()));
 
     QHBoxLayout *hLayout = new QHBoxLayout;
-    hLayout->addWidget(skipButton);
+    hLayout->addWidget(previousButton);
+    hLayout->addSpacing(10);
     hLayout->addWidget(saveButton);
-    hLayout->addWidget(validButton);
+    hLayout->addWidget(undoButton);
+    hLayout->addSpacing(10);
+    hLayout->addWidget(nextButton);
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(tLemme,0,0,Qt::AlignRight);
-    layout->addWidget(dLemme,0,1,Qt::AlignLeft);
-    layout->addWidget(tBeta,1,0,Qt::AlignRight);
-    layout->addWidget(dBeta,1,1,Qt::AlignLeft);
-    layout->addWidget(tTrad,2,0,Qt::AlignLeft);
+    layout->addWidget(dNum,0,0,Qt::AlignRight);
+    layout->addWidget(dNb,0,1,Qt::AlignLeft);
+    layout->addWidget(dLemAp,1,1,Qt::AlignRight);
+    layout->addWidget(dLemAv,1,0,Qt::AlignLeft);
+    layout->addWidget(dTrAp,2,1,Qt::AlignRight);
+    layout->addWidget(dTrAv,2,0,Qt::AlignLeft);
+    layout->addWidget(tLemme,3,0,Qt::AlignRight);
+    layout->addWidget(dLemme,3,1,Qt::AlignLeft);
+    layout->addWidget(tBeta,4,0,Qt::AlignRight);
+    layout->addWidget(dBeta,4,1,Qt::AlignLeft);
+    layout->addWidget(tEul,5,0,Qt::AlignLeft);
+
+    QGridLayout *layout2 = new QGridLayout;
+    layout2->addWidget(tEn,0,0,Qt::AlignRight);
+    layout2->addWidget(dTrEn,0,1,Qt::AlignLeft);
+    layout2->addWidget(tFr,1,0,Qt::AlignRight);
+    layout2->addWidget(dTrFr,1,1,Qt::AlignLeft);
+    layout2->addWidget(tDe,2,0,Qt::AlignRight);
+    layout2->addWidget(dTrDe,2,1,Qt::AlignLeft);
+
+    QGridLayout *layout3 = new QGridLayout;
+    layout3->addWidget(tB,0,0,Qt::AlignLeft);
+    layout3->addWidget(dLemB,0,1,Qt::AlignLeft);
 
     QVBoxLayout *vLayout = new QVBoxLayout;
     vLayout->addLayout(layout);
-    vLayout->addWidget(dOld);
-    vLayout->addWidget(dLine);
+    vLayout->addLayout(layout2);
+    vLayout->addLayout(layout3);
+    vLayout->addWidget(dTrB);
+    vLayout->addSpacing(20);
+    vLayout->addWidget(tC);
+    vLayout->addWidget(dComment);
+    vLayout->addLayout(hLayout0);
     vLayout->addLayout(hLayout);
 
     dVerif->setLayout(vLayout);
@@ -2248,183 +2812,417 @@ void MainWindow::dSetUp()
 //    qDebug() << "Je sors.";
 }
 
-void MainWindow::dNext()
+/**
+ * @brief valide le choix de traduction pour le lemme en cours
+ * @return un booléen @c true si on veut passer au lemme suivant
+ *
+ * On a cliqué sur le bouton de validation, après avoir choisi
+ * la nouvelle traduction du Bailly, la traduction actuelle d'Eulexis
+ * ou en remettant le choix à plus tard. Dans ce dernier cas,
+ * le programme demande une confirmation et retournera @c false
+ * si on annule ce non-choix (auquel cas, on reste sur le lemme en cours).
+ *
+ * Cette routine regarde le choix fait (i.e. quel radio-bouton est validé),
+ * et mets dans le fichier de sortie l'information correspondante.
+ */
+bool MainWindow::dValide()
 {
-    // J'affiche le prochain élément dans le dialogue de vérification
-    bool notGot = true;
-    QString ligne;
-    QString clef;
-    while (!dFlux.atEnd() && notGot)
+    // Il faut sauver le contenu des lignes de saisie.
+    QString nombre = "%1"; // Pour insérer facilement un nombre dans une chaine
+    int changement = 0;
+    if (choixRemis->isChecked())
     {
-        ligne = dFlux.readLine ();
-//        if (!ligne.startsWith("!") && !ligne.isEmpty())
-        // Au dessus, pour un csv normal. En dessous, pour les Bailly_vide
-        if (!ligne.startsWith("\t") && !ligne.isEmpty())
+        // Vérifier que c'est bien ce que l'on veut faire
+        QMessageBox attention(QMessageBox::Warning,tr("Choix remis !"),
+                              tr("Choix remis !"));
+        attention.setInformativeText("Êtes-vous sûr de vouloir remettre votre choix ?");
+        QPushButton *fermerButton =
+                attention.addButton(tr("Non"), QMessageBox::ActionRole);
+        QPushButton *continuerButton =
+                attention.addButton(tr("Oui"), QMessageBox::ActionRole);
+        attention.setDefaultButton(continuerButton);
+        attention.exec();
+        if (attention.clickedButton() == fermerButton) return false;
+        opCode -= 2;
+    }
+    else if (choixEulexis->isChecked())
+    {
+        // Vérifier que la traduction choisie n'est pas vide
+        if (dTrFr->text().simplified().isEmpty())
         {
-            QStringList eclats = ligne.split("\t");
-/*            if (eclats.size() > 3)
-            {
-                clef = __lemmatiseur->nettoie2(eclats[1]);
-                if (clef[clef.size() - 1].isDigit()) clef.chop(1);
-                clef.remove("-");
-                consulter(clef);
-                dLemme->setText(eclats[0]);
-                dBeta->setText(eclats[1]);
-                dOld->setText(eclats[2]);
-                dLine->setText(eclats[3]);
-                dLine->selectAll();
-                notGot = false;
-            }
-*/            // idem
-            if (eclats.size() > 2)
-            {
-                clef = __lemmatiseur->nettoie2(eclats[0]);
-                if (clef[0].isDigit()) clef = clef.mid(2);
-                if (clef.endsWith(",")) clef.chop(1);
-                if (clef.contains("-")) clef = clef.mid(0,clef.indexOf("-"));
-                clef.remove("·");
-                consulter(clef);
-                dLemme->setText(eclats[0]);
-                dBeta->setText(eclats[1]);
-                dOld->setText(eclats[2]);
-                dLine->setText("");
-                dLine->selectAll();
-                notGot = false;
-            }
-            // else qDebug() << ligne << eclats;
+            QMessageBox attention(QMessageBox::Warning,tr("Traduction vide !"),
+                                  tr("Traduction vide !"));
+            attention.setInformativeText("Êtes-vous sûr de vouloir valider une traduction vide ?");
+            QPushButton *fermerButton =
+                    attention.addButton(tr("Non"), QMessageBox::ActionRole);
+            QPushButton *continuerButton =
+                    attention.addButton(tr("Oui"), QMessageBox::ActionRole);
+            attention.setDefaultButton(fermerButton);
+            attention.exec();
+            if (attention.clickedButton() != continuerButton) return false;
+        }
+        opCode -= 1;
+    }
+    else
+    {
+        // Vérifier que la traduction choisie n'est pas vide
+        if (dTrB->toPlainText().simplified().isEmpty())
+        {
+            QMessageBox attention(QMessageBox::Warning,tr("Traduction vide !"),
+                                  tr("Traduction vide !"));
+            attention.setInformativeText("Êtes-vous sûr de vouloir valider une traduction vide ?");
+            QPushButton *fermerButton =
+                    attention.addButton(tr("Non"), QMessageBox::ActionRole);
+            QPushButton *continuerButton =
+                    attention.addButton(tr("Oui"), QMessageBox::ActionRole);
+            attention.setDefaultButton(fermerButton);
+            attention.exec();
+            if (attention.clickedButton() != continuerButton) return false;
+        }
+        opCode += indice;
+    }
+    QString ligne = elements[0] + "\t" + elements[1] + "\t" + elements[2] + "\t";
+    QString clef = dTrEn->text();
+    if (clef != elements[3]) changement += 1;
+    if (clef.isEmpty()) ligne.append(elements[3] + "\t");
+    else ligne.append(clef + "\t");
+    // Il ne faudrait pas que la traduction anglaise se perde.
+    // Les colonnes 4 et 5 sont plus compliquées
+    trBailly[indice] = dTrB->toPlainText().simplified(); // copie des derniers changements
+    if (trBailly.size() == 1)
+    {
+        // un seul élément
+        if (trBailly[0] != elements[5]) changement += 8;
+    }
+    else
+    {
+        QStringList eclats = elements[5].split("@");
+        // Les eclats correspondent aux traductions avant édition
+        int aj = 8;
+        for (int i = 0; i < eclats.size(); i++)
+        {
+            if (trBailly[i] != eclats[i]) changement += aj;
+            aj = 2 * aj;
         }
     }
-
-    if (dFlux.atEnd() && notGot)
+    clef = dTrFr->text();
+    if (clef != elements[6]) changement += 2;
+    if ((opCode > -1) && !clef.isEmpty() && !lemBailly.contains("fr_Eulexis"))
     {
-        dVerif->close();
-        dFichier.close();
-        dListe.close();
-        // C'est fini !
+        // La place de l'ancienne traduction va être utilisée pour la nouvelle
+        lemBailly.append("fr_Eulexis");
+        trBailly.append(clef);
+    }
+    ligne.append(lemBailly.join("@") + "\t");
+    ligne.append(trBailly.join("@") + "\t");
+    // La colonne 6 est la nouvelle trad Fr
+/*    if (opCode == -2) ligne.append("\t"); // Skip
+    else*/
+    // Je garde la traduction fr d'Eulexis pour opCode == -1 et -2.
+    if (opCode < 0) ligne.append(clef + "\t");
+        // Ancienne traduction du Bailly déjà dans clef
+    else ligne.append(dTrB->toPlainText().simplified() + "\t");
+    clef = dTrDe->text();
+    if (clef != elements[7]) changement += 4;
+    ligne.append(clef + "\t");
+    ligne.append(elements[8] + "\t");
+    if ((elements.size() > 10))
+    {
+        // Le fichier CSV d'origine a 10 colonnes.
+        // Si on reprend un fichier déjà revu, j'en ai ajouté 2
+        // (en réalité, supprimé une et ajouté trois).
+        // Je souhaite garder ces colonnes supplémentaires !
+        if ((changement > 0) || (opCode != -1) || (dComment->text() != elements[11]))
+        {
+            ligne.append(nombre.arg(opCode) + "@" + elements[9] + "\t");
+            ligne.append(nombre.arg(changement) + "@" + elements[10] + "\t");
+            ligne.append(dComment->text() + "@" + elements[11] + "\t");
+        }
+        else
+        {
+            ligne.append(elements[9] + "\t");
+            ligne.append(elements[10] + "\t");
+            ligne.append(elements[11] + "\t");
+        }
+    }
+    else
+    {
+        ligne.append(nombre.arg(opCode) + "\t");
+        ligne.append(nombre.arg(changement) + "\t");
+        ligne.append(dComment->text() + "\t");
+    }
+    if ((changement > 0) && (opCode != -1))
+        ligne.append(QDateTime::currentDateTime().toString("yy MM dd HH mm"));
+    else if (elements.size() > 10) ligne.append(elements[12]);
+    // Si je ne fais pas de changement, je n'ai pas à indiquer d'heure.
+    // Je termine la ligne avec l'heure.
+    lgMod[numLem] = ligne;
+//    dFichier.write(ligne.toUtf8());
+    opCode = 0;
+    return true;
+}
+
+/**
+ * @brief affiche un nouveau lemme et ses traductions dans la fenêtre de vérification.
+ * @param ligne : la ligne du fichier contenant les informations à vérifier.
+ */
+void MainWindow::dAffiche(QString ligne)
+{
+    elements = ligne.split("\t");
+    if (elements.size() > 9)
+    {
+        QString clef = elements[2]; // C'est le lemme en betacode.
+        if (clef.contains("-")) clef = __lemmatiseur->reconcil(clef);
+        clef = __lemmatiseur->nettoie2(clef);
+        if (clef[clef.size() - 1].isDigit()) clef.chop(1);
+        consulter(clef);
+        // J'ouvre les dicos à l'article demandé.
+        dLemme->setText(elements[1]);
+        dBeta->setText(elements[2]);
+        dTrEn->setText(elements[3]);
+        dTrFr->setText(elements[6]);
+        dTrDe->setText(elements[7]);
+        if (elements[4].isEmpty())
+        {
+            lemBailly.clear();
+            trBailly.clear();
+            lemBailly << "";
+            trBailly << "";
+            // Je ne sais pas ce que ferait un split sur une chaine vide...
+        }
+        else
+        {
+            lemBailly = elements[4].split("@");
+            trBailly = elements[5].split("@");
+        }
+        dTrB->setEnabled(true);
+        choixBailly->setEnabled(true);
+        dTrB->setText(trBailly[0]);
+        dLemB->clear();
+        indice = 0;
+        dLemB->addItems(lemBailly);
+        dLemB->setCurrentIndex(0);
+        if (elements.size() > 11)
+        {
+            dComment->setText(elements[11].section("@",0,0));
+            if ((elements[9].mid(0,2) == "-2") ||
+                    (elements[9].mid(0,2) == "98") ||
+                    (elements[9].mid(0,2) == "48"))
+                choixRemis->setChecked(true);
+            else choixEulexis->setChecked(true);
+            // Si j'ai 12 éléments et que le choix a déjà été fait,
+            // je l'ai mis dans la traduction d'Eulexis.
+            // Si j'ai remis mon choix (avec ou sans undo),
+            // je reste sur un non-choix.
+        }
+        else
+        {
+            dComment->clear();
+            choixBailly->setChecked(true);
+            // Par défaut, le Bailly est choisi...
+        }
+        if (ligne.startsWith("*")) dLemB->setStyleSheet(css_vert);
+        else if (ligne.startsWith("?"))
+        {
+            if (lemBailly.size() == 1) dLemB->setStyleSheet(css_orange);
+            else dLemB->setStyleSheet(css_rouge);
+        }
+        else if (ligne.startsWith("!"))
+        {
+            dLemB->setStyleSheet(css_gris);
+            choixEulexis->setChecked(true);
+            // Je n'ai pas de traductions du Bailly.
+            // Le choix par défaut est la traduction d'Eulexis.
+            dTrB->setEnabled(false);
+            choixBailly->setEnabled(false);
+        }
+        else dLemB->setStyleSheet(css_blanc);
+        QString nb = "%1";
+        dNum->setText(nb.arg(numLem + 1));
+        if (numLem == 0)
+        {
+            previousButton->setText("");
+            dLemAv->setText("");
+            dTrAv->setText("");
+            previousButton->setEnabled(false);
+        }
+        else
+        {
+            previousButton->setText(lgMod[numLem - 1].section("\t",1,1) + " <");
+            dLemAv->setText(lgMod[numLem - 1].section("\t",1,1) + " <");
+            dTrAv->setText(lgMod[numLem - 1].section("\t",3,3));
+            previousButton->setEnabled(true);
+        }
+        if (numLem == nbLem - 1)
+        {
+            nextButton->setText("Valid and Save");
+            dLemAp->setText("");
+            dTrAp->setText("");
+        }
+        else
+        {
+            nextButton->setText("Valide > " + lgMod[numLem + 1].section("\t",1,1));
+            dLemAp->setText("> " + lgMod[numLem + 1].section("\t",1,1));
+            dTrAp->setText(lgMod[numLem + 1].section("\t",3,3));
+        }
     }
 }
+
+/**
+ * @brief valide le choix de traduction et passe au lemme suivant
+ *
+ * C'est ce qui se passe quand on clique sur le bouton par défaut :
+ * on valide le choix et on passe au lemme suivant.
+ * Quand on a atteint la fin du fichier, l'ensemble des informations
+ * est sauvé et la fenêtre de vérification est fermée.
+ */
+void MainWindow::dNext()
+{
+    if (!dValide()) return;
+    // J'ai fini de sauver le résultat du lemme précédent.
+    // J'affiche le prochain élément dans le dialogue de vérification
+    numLem++;
+    if (numLem < nbLem) dAffiche(lgMod[numLem]);
+    else
+    {
+        dSave();
+        // C'est fini !
+        dVerif->hide();
+//        dVerif->close();
+    }
+}
+
+/**
+ * @brief revient au lemme considéré précédemment
+ *
+ * Ce @c slot est appelé quand on clique sur le bouton "Previous".
+ * On revient alors au lemme qui précède et on peut corriger les traductions.
+ */
+void MainWindow::dPrev()
+{
+//    dValide();
+    // Je ne valide pas quand je reviens en arrière.
+    // J'affiche le prochain élément dans le dialogue de vérification
+    if (numLem > 0)
+    {
+        numLem--;
+        dAffiche(lgMod[numLem]);
+    }
+}
+
+/**
+ * @brief change la traduction du Bailly, quand on choisit un autre lemme dans ce dictionnaire
+ * @param i : le numéro de l'item choisi dans la comboBox
+ *
+ * Un des buts de la vérification des traductions est de déméler les homonymes.
+ * Initialement, les lemmes avaient une traduction anglaise tirée du LSJ.
+ * Pas toujours heureuse dans le cas des homonymes.
+ * Lorsque j'ai dépouillé le Bailly 2020, j'ai mis en regard avec les lemmes
+ * d'Eulexis tous les homonymes trouvés dans le Bailly qui pourraient correspondre.
+ * Ils sont dans une comboBox et l'utilisateur doit choisir quel lemme du Bailly
+ * correspond à celui proposé (la traduction anglaise aide à choisir).
+ */
+void MainWindow::dChgLem(int i)
+{
+    // J'ai changé de lemme dans la comboBox.
+    if ((i > -1) && (i < trBailly.size()))
+    {
+        trBailly[indice] = dTrB->toPlainText().simplified(); // Je sauve les changements
+        indice = dLemB->currentIndex();
+//        qDebug() << i << indice;
+        dTrB->setText(trBailly[indice]);
+    }
+}
+
+/**
+ * @brief lance la vérification des traductions
+ *
+ * Ce @c slot est appelé par l'item de menu Extra/Vérifier les traductions.
+ * Si la fenêtre de vérification est déjà ouverte, il se contente de la mettre
+ * au premier plan.
+ * Sinon, il ouvre une fenêtre de dialogue pour choisir le fichier de traductions à vérifier.
+ * Si le fichier a déjà été (partiellement) revu (voir MainWindow::dSave),
+ * les données d'origine sont chargées aussi (si le fichier est trouvé) et
+ * le travail est repris là où il a été interrompu.
+ *
+ * @note On trouvera un mode d'emploi détaillé sur
+ * https://github.com/DigiClass/alpheios-french-dictionary/blob/master/docs/mode_d_emploi.md
+ */
 void MainWindow::verifT()
 {
+    if (dVerif->isVisible())
+    {
+        dVerif->raise();
+        return;
+    }
     QString nomFichier =
             QFileDialog::getOpenFileName(this, "Lire le fichier",QDir::homePath(),"CSV files (*.csv)");
     if (nomFichier.isEmpty()) return;
 
-//    if (__lemmatiseur->toInit()) __lemmatiseur->initData();
-
-    dListe.setFileName(nomFichier);
+    lgOrig.clear();
+    lgMod.clear();
+    lg_Old.clear();
+    QFile dListe(nomFichier);
     dListe.open (QIODevice::ReadOnly|QIODevice::Text);
     dFlux.setDevice(&dListe);
     dFlux.setCodec("UTF-8");
     // Le fichier en entrée
+    while (!dFlux.atEnd())
+    {
+        QString ligne = dFlux.readLine();
+        if (!ligne.startsWith("\t") && !ligne.isEmpty())
+        {
+            lgOrig.append(ligne);
+            lgMod.append(ligne);
+        }
+    }
+    dListe.close();
+    nbLem = lgMod.size();
+    numLem = 0;
+    dNomFic = nomFichier;
+    if (nomFichier.contains("_revu"))
+    {
+        nbLem--;
+        // La dernière ligne contient d'autres infos.
+        while ((numLem < nbLem) && (lgMod[numLem].count("\t") > 10)) numLem++;
+        // Si j'ai plus de 10 Tabs, le lemme a déjà été revu.
+        if (numLem == nbLem) numLem = 0;
+        // Si tout a été revu, je reviens au début.
+        // Est-ce que j'ai envie de charger aussi le fichier non-revu ?
+        nomFichier.remove("_revu");
+        if (QFile::exists(nomFichier))
+        {
+            dListe.setFileName(nomFichier);
+            dListe.open (QIODevice::ReadOnly|QIODevice::Text);
+            while (!dFlux.atEnd())
+            {
+                QString ligne = dFlux.readLine();
+                if (!ligne.startsWith("\t") && !ligne.isEmpty())
+                    lg_Old.append(ligne);
+            }
+            dListe.close();
+        }
+    }
+    else
+    {
+        dNomFic.chop(4);
+        dNomFic.append("_revu.csv");
+        // Je crée le nom du fichier de sortie.
+    }
 
-    QString nom = nomFichier;
+/*    QString nom = nomFichier;
     nom.chop(4);
     nom.append("_revu.csv");
     dFichier.setFileName(nom);
     dFichier.open (QIODevice::WriteOnly|QIODevice::Text);
+    nom.append("\n");
+    dFichier.write(nom.toUtf8());
     // Le fichier en sortie.
-
-    dNext();
-    dVerif->show();
-/*
-    QString ligne;
-    QString clef;
-    while (!fluxL.atEnd ())
-    {
-        ligne = fluxL.readLine ();
-        if (!ligne.startsWith("!") && !ligne.isEmpty())
-        {
-            QStringList eclats = ligne.split("\t");
-            if (eclats.size() == 4)
-            {
-                clef = __lemmatiseur->nettoie2(eclats[1]);
-                if (clef[clef.size() - 1].isDigit()) clef.chop(1);
-                clef.remove("-");
-                consulter(clef);
-                dLemme->setText(eclats[0]);
-                dBeta->setText(eclats[1]);
-                dOld->setText(eclats[2]);
-                dLine->setText(eclats[3]);
-                dVerif->show();
-            }
-            else qDebug() << ligne << eclats;
-        }
-    }
-    dVerif->close();
-    dFichier.close();
-    fListe.close();
-    // C'est fini !*/
-}
-
-/* morceau récupéré dans LASLA_tagger v2.
-void MainWindow::setDialFiche()
-{
-    QLabel *icon = new QLabel;
-    icon->setPixmap(QPixmap(":/res/laslalogo.jpg"));
-    QLabel *text = new QLabel;
-    text->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    text->setWordWrap(true);
-    text->setText("Nouvelle fiche :");
-
-    dFiche = new QDialog(this);
-    QLabel *tForme = new QLabel("Forme : ");
-    ficForme = new QLineEdit();
-    QLabel *tLemme = new QLabel("Lemme : ");
-    ficLemme = new QLineEdit();
-    QLabel *tInd = new QLabel("Indice : ");
-    ficIndice = new QLineEdit();
-    QLabel *tCode = new QLabel("Code : ");
-    ficCode9 = new QLineEdit();
-    QPushButton *finButton = new QPushButton(tr("Appliquer"));
-    connect(finButton, SIGNAL(clicked()), this, SLOT(paramFiche()));
-
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(icon,0,0,Qt::AlignCenter);
-    layout->addWidget(text,0,1,Qt::AlignCenter);
-    layout->addWidget(tForme,1,0,Qt::AlignRight);
-    layout->addWidget(ficForme,1,1,Qt::AlignLeft);
-    layout->addWidget(tLemme,2,0,Qt::AlignRight);
-    layout->addWidget(ficLemme,2,1,Qt::AlignLeft);
-    layout->addWidget(tInd,3,0,Qt::AlignRight);
-    layout->addWidget(ficIndice,3,1,Qt::AlignLeft);
-    layout->addWidget(tCode,4,0,Qt::AlignRight);
-    layout->addWidget(ficCode9,4,1,Qt::AlignLeft);
-    layout->addWidget(finButton,5,1,Qt::AlignRight);
-
-    dFiche->setLayout(layout);
-
-    ...
-    QPushButton *annulerButton = new QPushButton(tr("Annuler"));
-    QPushButton *retablirButton = new QPushButton(tr("Rétablir"));
-    QPushButton *appliquerButton = new QPushButton(tr("Appliquer"));
-    appliquerButton->setDefault(true);
-    connect(appliquerButton, SIGNAL(clicked()), this, SLOT(setCouleurs()));
-    connect(annulerButton, SIGNAL(clicked()), this, SLOT(paramFiche()));
-    connect(retablirButton, SIGNAL(clicked()), this, SLOT(defCouleurs()));
-    QHBoxLayout *hLayout = new QHBoxLayout;
-    hLayout->addWidget(annulerButton);
-    hLayout->addWidget(retablirButton);
-    hLayout->addWidget(appliquerButton);
-
-    QGridLayout *layout4 = new QGridLayout;
-    layout4->addWidget(icon4,0,0,Qt::AlignCenter);
-    layout4->addWidget(text4,0,1,Qt::AlignCenter);
-    layout4->addWidget(tc0,1,0,Qt::AlignRight);
-    layout4->addWidget(c0,1,1,Qt::AlignLeft);
-    layout4->addWidget(tc1,2,0,Qt::AlignRight);
-    layout4->addWidget(c1,2,1,Qt::AlignLeft);
-    layout4->addWidget(tc2,3,0,Qt::AlignRight);
-    layout4->addWidget(c2,3,1,Qt::AlignLeft);
-    layout4->addWidget(tc3,4,0,Qt::AlignRight);
-    layout4->addWidget(c3,4,1,Qt::AlignLeft);
-    layout4->addWidget(tc4,5,0,Qt::AlignRight);
-    layout4->addWidget(c4,5,1,Qt::AlignLeft);
-
-    QVBoxLayout *vLayout = new QVBoxLayout;
-    vLayout->addLayout(layout4);
-    vLayout->addLayout(hLayout);
-
-    dCoul->setLayout(vLayout);
-
-}
 */
+    dAffiche(lgMod[numLem]);
+    QString nb = "/ %1";
+    dNb->setText(nb.arg(nbLem));
+    dVerif->show();
+    dVerif->move(x() + width() - dVerif->width()/2, y() + (height() - dVerif->height())/2);
+
+}

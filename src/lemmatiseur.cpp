@@ -1,5 +1,23 @@
 #include "lemmatiseur.h"
 
+/**
+ * @file lemmatiseur.cpp
+ * @brief définition de la classe Lemmat qui sert à lemmatiser les formes grecques
+ */
+
+/**
+ * @brief Créateur de la classe Lemmat
+ * @param rep : le chemin complet du dossier contenant les ressources
+ *
+ * J'initialise ici quelques variables et je lis le tableau de conversion
+ * entre le betacode et l'unicode.
+ * Je ne lis plus les index des dictionnaires ni les listes de formes et de traductions.
+ * Partant du constat que c'est surtout pour consulter les dictionnaires
+ * que l'on utilise Eulexis, je ne lis les listes de formes et de traductions
+ * que lorsque l'on demande une lemmatisation ou une traduction.
+ * On attend moins au démarrage, mais on attend une deuxième fois
+ * quand on demande une analyse.
+ */
 Lemmat::Lemmat(QString rep)
 {
     _rscrDir = rep;
@@ -33,17 +51,42 @@ qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
     _maxList = 20; // Nombre max de réponses données à une requête contenant des caractères de substitution.
 }
 
+/**
+ * @brief lit les index des dictionnaires
+ *
+ * Pour essayer de faire paraître le temps de chargement moins long,
+ * je ne charge les index des dictionnaires que lorsque j'ai créé
+ * la fenêtre principale du programme. Je ne suis pas sûr que ça marche.
+ */
 void Lemmat::lireData()
 {
-//    lireAnalyses();
-//    lireTraductions();
-// qDebug() << _formes.size() << _trad.size() << _beta.size() << _uni.size();
     lireLSJ();
     lireAbrBailly();
     lireBailly();
     lirePape();
 }
 
+/**
+ * @brief lemmatise une forme
+ * @param f : la forme qui peut être en caractères latins ou grecs
+ * @param beta : booléen pour distinguer les deux bêtas.
+ * @return Une liste de chaines de caractères au format HTML
+ *
+ * Je cherche la forme sans accent ni diacritique dans ma liste
+ * Lemmat::_formes qui contient les formes de Diogenes
+ * avec leurs lemmatisation(s) et analyse(s).
+ * Toutes les formes qui partagent les mêmes caractères sans tenir
+ * compte des diacritiques sont groupées dans Lemmat::_formes
+ * et je vais donc les séparer pour faire les items de la liste.
+ * Une forme particulière peut, à son tour, venir de plusieurs lemmes
+ * et/ou avoir plusieurs analyses possibles. Donc chaque item contient
+ * une liste avec ces lemmatisations et analyses.
+ *
+ * Si la forme a été donnée en caractères grecs avec ses signes diacritiques
+ * et que, parmi les formes trouvées, il y en a une qui correspond exactement,
+ * elle sera placée en début de liste et la forme sera en rouge.
+ * Si elle ne diffère que par une majuscule, elle sera en orangé.
+ */
 QStringList Lemmat::lemmatise(QString f,bool beta)
 {
     QStringList llem;
@@ -184,12 +227,12 @@ QStringList Lemmat::lemmatise(QString f,bool beta)
 }
 
 /**
- * @brief Lemmat::lem2csv
+ * @brief Lemmatise une forme pour préparer un CSV
  * @param f : la forme à lemmatiser
  * @param beta : pour avoir des beta intérieurs dans les formes
  * @return Une QStringList avec les différents lemmes possibles
  *
- * Il s'agit de reprendre la routine lemmatise ci-dessus,
+ * Il s'agit de reprendre la routine Lemmat::lemmatise,
  * mais on ne veut garder que les lemmes pour les mettre
  * dans un fichier csv délimité par des tab.
  * Il n'y a donc plus de balise HTML, mais je dois distinguer
@@ -238,6 +281,13 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
         // je veux donner la forme approchée à côté du lemme.
 //        ligne = "";
         if (mot == f_gr) ligne.prepend("<<");
+        else if (f_gr.contains("+") && !mot.contains("+"))
+        {
+           // J'ai un tréma dans le texte et pas dans la forme analysée.
+            QString b = f_gr;
+            b.remove("+");
+            if (mot == b) ligne.prepend("<<");
+        }
         // Le mot est exactement le bon (avec toutes ses décorations).
         else if (f_gr.startsWith("*") && !mot.startsWith("*"))
         {
@@ -290,6 +340,21 @@ QStringList Lemmat::lem2csv(QString f,bool beta)
     return llem;
 }
 
+/**
+ * @brief convertit une forme de betacode en unicode
+ * @param f : la forme en betacode à convertir
+ * @param beta : booléen pour distinguer les deux bêtas
+ * @return la forme convertie en unicode
+ *
+ * La forme @a f est ici un mot isolé.
+ * S'il se termine par un "s", c'est un sigma final "ς"
+ * qu'il faudra mettre à la fin du mot en caractères grecs.
+ *
+ * Si le booléen @a beta est @c true, on distinguera le bêta
+ * initial "β" du bêta intérieur "ϐ".
+ * Sinon, tous les bêtas seront écrits "β".
+ * La distinctions des bêtas semble être une tradition française.
+ */
 QString Lemmat::beta2unicode(QString f, bool beta)
 {
     if (f.isEmpty()) return f;
@@ -323,6 +388,11 @@ QString Lemmat::beta2unicode(QString f, bool beta)
     return f;
 }
 
+/**
+ * @brief convertit une forme de l'unicode en betacode
+ * @param f : la forme en caractères grecs (unicode) à convertir
+ * @return la forme convertie en betacode
+ */
 QString Lemmat::uni2betacode(QString f)
 {
     // Transf l'unicode en betacode
@@ -333,11 +403,20 @@ QString Lemmat::uni2betacode(QString f)
     return f;
 }
 
+/**
+ * @brief retire d'une forme ses signes diacritiques
+ * @param f : la forme en caractères grecs
+ * @return la forme en betacode sans signe diacritique, ni majuscule
+ */
 QString Lemmat::nettoie(QString f)
 {
     f.remove("\u1FBF");
     // Dans le Bailly, il y a un rho majuscule avec un esprit doux qui n'existe pas en Unicode
     // d'où l'utilisation de ce caractère "psili" tout seul (dans deux mots).
+    f.remove("\u0384");
+    // Dans le LSJ, il y a une entrée ΄κτώ qui utilise le "Greek tonos" comme apostrophe.
+    f.remove("\u2020");
+    // Dans le LSJ et dans le Pape, il y a des entrées qui commence avec un "dagger".
     QString res = uni2betacode(f);
     // $betasignes = array("(", ")", "\\", "/", "=", "+", "|", "_", "^", "*");
     res.remove("(");
@@ -353,6 +432,11 @@ QString Lemmat::nettoie(QString f)
     return res;
 }
 
+/**
+ * @brief retire d'une forme ses signes diacritiques
+ * @param f : la forme en betacode
+ * @return la forme en betacode sans signe diacritique
+ */
 QString Lemmat::nettoie2(QString res)
 {
     // La même que nettoie mais la forme est déjà en betacode.
@@ -371,6 +455,12 @@ QString Lemmat::nettoie2(QString res)
     return res;
 }
 
+/**
+ * @brief transformation des analyses
+ * @param nom
+ *
+ * @deprecated n'est pas utilisé (et vide de surcroît).
+ */
 void Lemmat::majAnalyses(QString nom)
 {
     // Contrairement aux mises à jour des dicos, où j'ai déjà recopié
@@ -521,6 +611,21 @@ void Lemmat::majAnalyses(QString nom)
     */
 }
 
+/**
+ * @brief mise à jour de l'Abrégé du Bailly
+ * @param nom : le chemin complet du nouveau fichier
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine fait suite à
+ * MainWindow::majAB qui a recopié la copie de travail au bon endroit et
+ * elle va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void Lemmat::majAbrBailly(QString nom)
 {
     // Pour le dico "XMLBailly*.txt"
@@ -587,6 +692,21 @@ void Lemmat::majAbrBailly(QString nom)
     lireAbrBailly();
 }
 
+/**
+ * @brief mise à jour du Bailly
+ * @param nom : le chemin complet du nouveau fichier
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine fait suite à
+ * MainWindow::majB qui a recopié la copie de travail au bon endroit et
+ * elle va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void Lemmat::majBailly(QString nom)
 {
     // Pour le dico "Bailly2020.txt"
@@ -606,7 +726,7 @@ void Lemmat::majBailly(QString nom)
         fli << "! " << fandr.fileName().section("/",-1) << "\n!\n";
         fli << QString("! Fichier d'index pour le dico sus-nommé\n");
         fli << QString("! créé par et pour la version résidente d'Eulexis.\n!\n");
-        fli << "! Le Bailly 2020 a été mis en TeX par Gérard Gréco et son équipe.\n";
+        fli << QString("! Le Bailly 2020 a été mis en TeX par Gérard Gréco et son équipe.\n");
         fli << "! Il est disponible ici avec l'autorisation de l'auteur.\n!\n";
         fli << "! Philippe Verkerk 2020.\n!\n";
         fli << QString("! Les lignes commençant par un ! sont des commentaires,\n!\n");
@@ -655,6 +775,7 @@ void Lemmat::majBailly(QString nom)
             if (linea.contains("var='"))
             {
                 // J'ai des entrées secondaires...
+                if (cle.contains("-")) qDebug() << linea;
                 cle = linea.section("'>",0,0);
                 cle = cle.section("'",-1);
                 cle = nettoie(cle).toLower();
@@ -665,7 +786,15 @@ void Lemmat::majBailly(QString nom)
 //            fli << cle << "\n" << clef << ":" << p << ":" << cle << ":" << cle_prec << ":";
             // La ligne est incomplète : la clé suivante viendra la compléter.
         }
-//        fli << QString("Α\n"); // Compléter la dernière ligne avec le premier mot.
+        if (!listClefs.isEmpty())
+        {
+            // J'ai fini le fichier, mais pas sorti la dernière ligne.
+            for (int i = 0; i < listClefs.size(); i++)
+                fli << listClefs[i] << lg << QString("Α\n");
+            // Je complète la dernière ligne avec le premier mot qui est un alpha majuscule.
+            // Le QString est là pour assurer que la transcription se fera bien en utf-8.
+            listClefs.clear();
+        }
     }
     else qDebug() << "erreur";
     fandr.close ();
@@ -673,6 +802,21 @@ void Lemmat::majBailly(QString nom)
     lireBailly();
 }
 
+/**
+ * @brief mise à jour du LSJ
+ * @param nom : le chemin complet du nouveau fichier
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine fait suite à
+ * MainWindow::majL qui a recopié la copie de travail au bon endroit et
+ * elle va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void Lemmat::majLSJ(QString nom)
 {
     QString linea;
@@ -812,6 +956,9 @@ void Lemmat::majLSJ(QString nom)
 */
 }
 
+/**
+ * @brief Charge en mémoire l'index du LSJ
+ */
 void Lemmat::lireLSJ()
 {
     // Charger en mémoire l'index du LSJ
@@ -896,6 +1043,9 @@ void Lemmat::lireLSJ()
     */
 }
 
+/**
+ * @brief Charge en mémoire l'index de l'abrégé du Bailly
+ */
 void Lemmat::lireAbrBailly()
 {
     // Charger en mémoire l'index du Bailly
@@ -940,6 +1090,9 @@ void Lemmat::lireAbrBailly()
 //    qDebug() << _AbrBaillyIndex.size();
 }
 
+/**
+ * @brief Charge en mémoire l'index du Bailly
+ */
 void Lemmat::lireBailly()
 {
     QMap <QString,int> occ;
@@ -983,7 +1136,7 @@ void Lemmat::lireBailly()
     }
     findex.close ();
 //    qDebug() << _BaillyIndex.size();
-    QStringList ll = _BaillyIndex.keys();
+/*    QStringList ll = _BaillyIndex.keys();
     ll.removeDuplicates();
     findex.setFileName("/Users/Philippe/Documents/Bailly_cnt.csv");
     findex.open(QFile::WriteOnly | QFile::Text);
@@ -993,9 +1146,12 @@ void Lemmat::lireBailly()
         b = b.arg(_BaillyIndex.values(bla).size());
         findex.write(b.toUtf8());
     }
-    findex.close();
+    findex.close(); */
 }
 
+/**
+ * @brief Charge en mémoire l'index du Pape
+ */
 void Lemmat::lirePape()
 {
     // Charger en mémoire l'index du Pape
@@ -1040,6 +1196,12 @@ void Lemmat::lirePape()
 //    qDebug() << _PapeIndex.size();
 }
 
+/**
+ * @brief consultation d'un dictionnaire par une expression rationnelle
+ * @param f : l'expression rationnelle à chercher
+ * @param dicIndex : un pointeur vers l'index du dictionnaire
+ * @return la liste des entrées de l'index qui coïncident avec l'expression rationnelle.
+ */
 QStringList Lemmat::consRegExp(QString f, QMultiMap<QString, QString> *dicIndex)
 {
     QStringList llem;
@@ -1055,6 +1217,12 @@ QStringList Lemmat::consRegExp(QString f, QMultiMap<QString, QString> *dicIndex)
     return llem;
 }
 
+/**
+ * @brief consultation d'un dictionnaire avec des caractères de substitution
+ * @param f : la forme à chercher avec ses caractères de substitution ("*" et "?")
+ * @param dicIndex : un pointeur vers l'index du dictionnaire
+ * @return la liste des entrées de l'index qui coïncident avec la forme demandée.
+ */
 QStringList Lemmat::consAsterisk(QString f, QMultiMap<QString, QString> *dicIndex)
 {
     QStringList llem;
@@ -1364,6 +1532,22 @@ QStringList Lemmat::consAsterisk(QString f, QMultiMap<QString, QString> *dicInde
     return llem;
 }
 
+/**
+ * @brief cherche une forme dans l'index d'un dictionnaire
+ * @param f : la forme à chercher
+ * @param dicIndex : un pointeur vers l'index du dictionnaire
+ * @return la liste des entrées de l'index qui coïncident avec la forme demandée.
+ *
+ * La forme à chercher dans l'index peut être données en caractères grecs ou latins.
+ * Dans ce dernier cas (et dans ce cas seulement), la forme peut contenir
+ * des expressions rationnelles **ou** des caractères de substitution.
+ * * Si j'ai une forme grecque avec diacritiques, je ne fais que la recherche directe
+ * et si possible je ne garde que la forme exacte.
+ * * Si la forme contient une expression rationnelle, je ferai appel
+ * à Lemmat::consRegExp.
+ * * Si j'ai des caractères de substitution, j'appellerai Lemmat::consAsterisk.
+ * * Sinon, je fais une recherche directe.
+ */
 QStringList Lemmat::cherchIndex(QString f, QMultiMap<QString, QString> *dicIndex)
 {
     QString f_gr = "";
@@ -1415,6 +1599,15 @@ QStringList Lemmat::cherchIndex(QString f, QMultiMap<QString, QString> *dicIndex
     return llem;
 }
 
+/**
+ * @brief consultation du LSJ
+ * @param f : la forme à chercher
+ * @return une liste avec les articles correspondants (en HTML)
+ *
+ * Cette fonction appelle la fonction générique Lemmat::consult
+ * et essaie ensuite d'ajouter des liens à chaque fois qu'elle
+ * pense avoir trouvé un renvoi (dont la forme dépend du dictionnaire).
+ */
 QStringList Lemmat::consLSJ(QString f)
 {
     // Consulter le LSJ pour la forme f
@@ -1449,6 +1642,15 @@ QStringList Lemmat::consLSJ(QString f)
     return res;
 }
 
+/**
+ * @brief consultation de l'abrégé du Bailly
+ * @param f : la forme à chercher
+ * @return une liste avec les articles correspondants (en HTML)
+ *
+ * Cette fonction appelle la fonction générique Lemmat::consult
+ * et essaie ensuite d'ajouter des liens à chaque fois qu'elle
+ * pense avoir trouvé un renvoi (dont la forme dépend du dictionnaire).
+ */
 QStringList Lemmat::consAbrBailly(QString f)
 {
     // Consulter le Bailly pour la forme f
@@ -1497,6 +1699,15 @@ QStringList Lemmat::consAbrBailly(QString f)
     return res;
 }
 
+/**
+ * @brief consultation du Bailly
+ * @param f : la forme à chercher
+ * @return une liste avec les articles correspondants (en HTML)
+ *
+ * Cette fonction appelle la fonction générique Lemmat::consult
+ * et essaie ensuite d'ajouter des liens à chaque fois qu'elle
+ * pense avoir trouvé un renvoi (dont la forme dépend du dictionnaire).
+ */
 QStringList Lemmat::consBailly(QString f)
 {
     // Consulter le Bailly pour la forme f
@@ -1546,6 +1757,15 @@ QStringList Lemmat::consBailly(QString f)
     return res;
 }
 
+/**
+ * @brief consultation du Pape
+ * @param f : la forme à chercher
+ * @return une liste avec les articles correspondants (en HTML)
+ *
+ * Cette fonction appelle la fonction générique Lemmat::consult
+ * et essaie ensuite d'ajouter des liens à chaque fois qu'elle
+ * pense avoir trouvé un renvoi (dont la forme dépend du dictionnaire).
+ */
 QStringList Lemmat::consPape(QString f)
 {
     // Consulter le Pape pour la forme f
@@ -1576,6 +1796,27 @@ QStringList Lemmat::consPape(QString f)
     return res;
 }
 
+/**
+ * @brief consultation d'un dictionnaire
+ * @param nom : le nom du fichier pour le dictionnaire
+ * @param llem : la liste des entrées de l'index que l'on souhaite afficher
+ * @param prefix : un préfixe pour s'y retrouver dans les liens sur la page finale.
+ * @return une liste de chaines de caractères
+ *
+ * La consultation d'un dictionnaire se prépare en trois temps.
+ * D'abord, on cherche une forme dans l'index du dictionnaire.
+ * Ensuite, on prend la liste des entrées correspondantes et
+ * on va chercher, dans le fichier contenant le dictionnaire,
+ * les articles correspondants.
+ * Enfin, on essaie d'identifier des renvois dans chaque article.
+ *
+ * La liste retournée a un format un peu particulier.
+ * Si elle n'est pas vide (la forme a été trouvée dans le dictionnaire),
+ * elle contient au moins quatre éléments.
+ * Les trois premiers sont respectivement le mot avant, le mot après
+ * et la liste de liens. Ils permettront donc la navigation entre
+ * les articles. Ensuite viennent les articles de dictionnaires.
+ */
 QStringList Lemmat::consult(QString nom, QStringList llem, QString prefix)
 {
     QStringList ici;
@@ -1653,6 +1894,21 @@ QStringList Lemmat::consult(QString nom, QStringList llem, QString prefix)
     return donnees;
 }
 
+/**
+ * @brief mise à jour du Pape
+ * @param nom : le chemin complet du nouveau fichier
+ *
+ * Dans Eulexis, les dictionnaires sont simplement en HTML.
+ * N'importe qui peut donc les corriger à chaque fois qu'une erreur est trouvée.
+ * Quand on est satisfait des corrections apportées sur une **copie de travail**,
+ * on peut l'importer dans Eulexis. Cette routine fait suite à
+ * MainWindow::majP qui a recopié la copie de travail au bon endroit et
+ * elle va lire le dictionnaire et reconstruire l'index correspondant.
+ *
+ * @attention Ne jamais travailler directement sur le fichier utilisé par Eulexis !
+ * @attention Toujours conserver une copie du fichier d'origine
+ * (on sait qu'il est conforme aux attentes du programme).
+ */
 void Lemmat::majPape(QString nom)
 {
     // Pour le dico "Pape*.txt"
@@ -1722,6 +1978,12 @@ void Lemmat::majPape(QString nom)
     lirePape();
 }
 
+/**
+ * @brief lie les renvois à d'autres mots
+ * @param article : un article du dictionnaire
+ * @param renvoi : une forme qui introduit parfois un renvoi, par exemple " v. "
+ * @return l'article d'origine dans lequel on a inséré des liens sur les renvois.
+ */
 QString Lemmat::lierRenvois(QString article, QString renvoi)
 {
     int p = article.indexOf(renvoi);
@@ -1763,7 +2025,800 @@ QString Lemmat::lierRenvois(QString article, QString renvoi)
     return article;
 }
 
+/**
+ * @brief essaie de réconcilier les préfixes et le lemme
+ * @param beta : le lemme et ses préfixes en betacode
+ * @return une forme plausible du lemme complet
+ *
+ * Perseus a séparé les préfixes et ne considère que la traduction
+ * du lemme racine. Dans la vérification des traductions,
+ * j'essaie de trouver les formes composées dans les dicos.
+ * Mais les préverbes changent de forme.
+ * Par exemple, su/n-p... devient sump...
+ * @note probablement incomplet et inutile.
+ */
+QString Lemmat::reconcil(QString beta)
+{
+    QString pre = beta.section("-",0,0);
+    QString verb = beta.section("-",1);
+    if (verb.contains("-")) verb = reconcil(verb);
+    if (pre.endsWith("/")) pre.chop(1);
+    if (voyelles.contains(pre[pre.size() - 1]) && voyelles.contains(verb[0])
+            && !pre.endsWith("peri")) // peri subsiste
+    {
+        pre.chop(1);
+        if ((verb[1] == '(') || (voyelles.contains(verb[1]) && (verb[2] == '(')))
+        {
+            // Changement de consonne avant un esprit rude
+            if (pre[pre.size() - 1] == 'p') pre[pre.size() - 1] = 'f'; // pi devient phi
+            if (pre[pre.size() - 1] == 't') pre[pre.size() - 1] = 'q'; // tau devient tetha
+            if (pre[pre.size() - 1] == 'k') pre[pre.size() - 1] = 'c'; // kappa devient xhi
+        }
+    }
+    else
+    {
+        // quelques changements avec su/n
+        if (pre.endsWith("n"))
+        {
+            if (verb.startsWith("b") || verb.startsWith("p") || verb.startsWith("m")
+                                  || verb.startsWith("f") || verb.startsWith("y"))
+                pre[pre.size() - 1] = 'm';
+            if (verb.startsWith("l"))
+                pre[pre.size() - 1] = 'l';
+            if (verb.startsWith("r"))
+                pre[pre.size() - 1] = 'r';
+        }
+    }
+    return pre + verb;
+}
+
+/**
+ * @brief construit l'index commun aux quatre dictionnaires pour la version web d'Eulexis
+ *
+ * Dans la version web, j'utilise un index unique qui regroupe les index
+ * des quatre dictionnaires, séparés ici.
+ * Pour que la version web bénéficie des mise à jour sur les dictionnaires,
+ * je construis ici cet index commun que j'exporte ensuite avec
+ * les autres fichiers concernés.
+ * @note Je suis (et serai probablement toujours) le seul à utiliser cette fonction.
+ */
 void Lemmat::indexCommun()
+#ifdef PIRATE
+{
+    // Je pirate la construction de l'index commun pour faire un outil d'alignement
+    if (_toInit) initData();
+    QString racine = "/Users/Philippe/Documents/GIT/Alpheios_Bailly/data/raw/eulexis/";
+    QMultiMap<QString,QString> sens;
+    QMultiMap<QString,QString> subst;
+    QMultiMap<QString,QString> renv;
+    QMultiMap<QString,QString> es_sens;
+    QMultiMap<QString,QString> es_renv;
+    QMultiMap<QString,QString> sens_sd;
+    QMultiMap<QString,QString> subst_sd;
+    QMultiMap<QString,QString> renv_sd;
+    QMultiMap<QString,QString> es_sens_sd;
+    QMultiMap<QString,QString> es_renv_sd;
+    QMultiMap<QString,QString> nbOcc;
+    QMultiMap<QString,QString> nbOcc_sd;
+    QString lg;
+    QString lem;
+    QString beta;
+    // J'ajoute un morceau pour faire la liste des pseudo-homonymes.
+    QMultiMap <QString,QString> pseudos;
+    QStringList complexes;
+    foreach (QString lem, _trad.keys())
+    {
+        QString beta = nettoie2(lem);
+        if (beta[beta.size() - 1].isDigit()) beta.chop(1);
+        pseudos.insert(beta,lem);
+        // Je regroupe les lemmes en fonction des chaines sans diacritique.
+    }
+    QStringList ps = pseudos.keys();
+    ps.removeDuplicates();
+/*    QFile fListe("/Users/Philippe/Documents/Chantiers_Eulexis/pseudos.csv");
+    if (!fListe.open(QFile::WriteOnly | QFile::Text))
+        qDebug() << "Echec";
+    QTextStream fluxL(&fListe);
+    fluxL.setCodec("UTF-8");*/
+    foreach (QString lem, ps) {
+        QStringList liste = pseudos.values(lem);
+        if (liste.size() > 1)
+            complexes.append(liste);
+//            fluxL << liste.size() << "\t" << liste.join("\t") << "\n";
+    }
+    qDebug() << complexes.size();
+//    fListe.close();
+    // Fin de l'ajout (5 février 2021)
+    QFile fichier (racine + "Bailly_sens.csv");
+    fichier.open(QFile::ReadOnly | QFile::Text);
+    while (!fichier.atEnd())
+    {
+        lg = fichier.readLine();
+        if (lg.endsWith("\n")) lg.chop(1);
+        if (lg.isEmpty()) continue;
+        lem = lg.section("\t",0,0);
+        beta = lem;
+        if (beta[0].isDigit()) beta = beta.mid(2);
+        if (beta[0] == '*') beta = beta.mid(1);
+        if (beta.contains(" ")) beta = beta.section(" ",0,0);
+        if (beta.endsWith(",")) beta.chop(1);
+        sens.insert(uni2betacode(beta),lg);
+        sens_sd.insert(nettoie(beta),lg);
+    }
+    fichier.close();
+    qDebug() << "Sens chargés";
+    fichier.setFileName(racine + "Bailly_renv.csv");
+    fichier.open(QFile::ReadOnly | QFile::Text);
+    while (!fichier.atEnd())
+    {
+        lg = fichier.readLine();
+        if (lg.endsWith("\n")) lg.chop(1);
+        if (lg.isEmpty()) continue;
+        lem = lg.section("\t",0,0);
+        beta = lem;
+        if (beta[0].isDigit()) beta = beta.mid(2);
+        if (beta[0] == '*') beta = beta.mid(1);
+        if (beta.contains(" ")) beta = beta.section(" ",0,0);
+        renv.insert(uni2betacode(beta),lg);
+        renv_sd.insert(nettoie(beta),lg);
+        // Je ne cherche pas à résoudre les renvois
+    }
+    fichier.close();
+    qDebug() << "Renv chargés";
+    fichier.setFileName(racine + "Logeion_freq_sup5.csv");
+    fichier.open(QFile::ReadOnly | QFile::Text);
+    while (!fichier.atEnd())
+    {
+        lg = fichier.readLine();
+        if (lg.endsWith("\n")) lg.chop(1);
+        if (lg.isEmpty()) continue;
+        lem = lg.section("\t",0,0);
+        beta = lem;
+        if (beta[beta.size() - 1].isDigit()) beta.chop(1);
+        if (beta[0] == '*') beta = beta.mid(1);
+        if (beta.contains(" ")) beta = beta.section(" ",0,0);
+        nbOcc.insert(uni2betacode(beta),lg);
+        nbOcc_sd.insert(nettoie(beta),lg);
+    }
+    fichier.close();
+    qDebug() << "Nombres d'occurrences chargés";
+    fichier.setFileName(racine + "Bailly_subst.csv");
+    fichier.open(QFile::ReadOnly | QFile::Text);
+    while (!fichier.atEnd())
+    {
+        lg = fichier.readLine();
+        if (lg.endsWith("\n")) lg.chop(1);
+        if (lg.isEmpty()) continue;
+        lem = lg.section("\t",1,1);
+        beta = lem;
+        if (beta[0].isDigit()) beta = beta.mid(2);
+        if (beta[0] == '*') beta = beta.mid(1);
+        if (beta.contains(" ")) beta = beta.section(" ",1,1);
+        // Je dois recomposer la ligne autrement (comme pour Bailly_sens)
+        QStringList eclats = lg.split("\t");
+        QString toto = "\t%1\t";
+        lg = eclats[0] + " " + eclats[1] + " (in " + eclats[3] + ")\t";
+        lg = lg + eclats[2] + toto.arg(eclats[2].size()) + eclats[4];
+        subst.insert(uni2betacode(beta),lg);
+        subst_sd.insert(nettoie(beta),lg);
+    }
+    fichier.close();
+    qDebug() << "Subst chargés";
+    fichier.setFileName(racine + "Bailly_es_renv.csv");
+    fichier.open(QFile::ReadOnly | QFile::Text);
+    while (!fichier.atEnd())
+    {
+        lg = fichier.readLine();
+        if (lg.endsWith("\n")) lg.chop(1);
+        if (lg.isEmpty()) continue;
+        lem = lg.section("\t",1,1);
+        if (lem.contains(","))
+        {
+            // Il y en a plusieurs
+            QStringList e = lem.split(", ");
+            foreach (beta, e)
+            {
+                if (beta[0].isDigit()) beta = beta.mid(2);
+                if (beta[0] == '*') beta = beta.mid(1);
+                if (beta.contains(" ")) beta = beta.section(" ",1,1);
+                es_renv.insert(uni2betacode(beta),lg);
+                es_renv_sd.insert(nettoie(beta),lg);
+            }
+        }
+        else
+        {
+            beta = lem;
+            if (beta[0].isDigit()) beta = beta.mid(2);
+            if (beta[0] == '*') beta = beta.mid(1);
+            if (beta.contains(" ")) beta = beta.section(" ",0,0);
+            es_renv.insert(uni2betacode(beta),lg);
+            es_renv_sd.insert(nettoie(beta),lg);
+        }
+    }
+    fichier.close();
+    qDebug() << "Es Renv chargés";
+    fichier.setFileName(racine + "Bailly_es_sens.csv");
+    fichier.open(QFile::ReadOnly | QFile::Text);
+    while (!fichier.atEnd())
+    {
+        lg = fichier.readLine();
+        if (lg.endsWith("\n")) lg.chop(1);
+        if (lg.isEmpty()) continue;
+        lem = lg.section("\t",1,1);
+        if (lem.contains(","))
+        {
+            // Il y en a plusieurs
+            QStringList e = lem.split(", ");
+            foreach (beta, e)
+            {
+                if (beta[0].isDigit()) beta = beta.mid(2);
+                if (beta[0] == '*') beta = beta.mid(1);
+                if (beta.contains(" ")) beta = beta.section(" ",1,1);
+                es_sens.insert(uni2betacode(beta),lg);
+                es_sens_sd.insert(nettoie(beta),lg);
+            }
+        }
+        else
+        {
+            beta = lem;
+            if (beta[0].isDigit()) beta = beta.mid(2);
+            if (beta[0] == '*') beta = beta.mid(1);
+            if (beta.contains(" ")) beta = beta.section(" ",1,1);
+            es_sens.insert(uni2betacode(beta),lg);
+            es_sens_sd.insert(nettoie(beta),lg);
+        }
+    }
+    fichier.close();
+    qDebug() << "es Sens chargés";
+    int nbre;
+    int numero = 0;
+    int numbis = 0;
+    QStringList lesRes;
+    QString format = "%1\t%2\t%3\t%4\t";
+    fichier.setFileName("/Users/Philippe/Documents/GIT/Alpheios_Bailly/data/Eulexis_Bailly_sens.csv");
+    fichier.open(QFile::WriteOnly | QFile::Text);
+    QTextStream flux (&fichier);
+    flux.setCodec("UTF-8");
+    flux << "numero\tlemme\tbetacode\ttrad_En\tlem_tr\tsens\tlongueur\tindications\toccurrences\tnombre\n";
+    QFile fout("/Users/Philippe/Documents/Chantiers_Eulexis/to_check_first.csv");
+    fout.open(QFile::WriteOnly | QFile::Text);
+    QTextStream sout (&fout);
+    sout.setCodec("UTF-8");
+    QFile fout2("/Users/Philippe/Documents/Chantiers_Eulexis/to_check_later.csv");
+    fout2.open(QFile::WriteOnly | QFile::Text);
+    QTextStream sout2 (&fout2);
+    sout2.setCodec("UTF-8");
+    QFile fout3("/Users/Philippe/Documents/Chantiers_Eulexis/complexCases.csv");
+    fout3.open(QFile::WriteOnly | QFile::Text);
+    QTextStream sout3 (&fout3);
+    sout3.setCodec("UTF-8");
+
+    foreach (beta, _trad.keys())
+    {
+        lesRes.clear();
+        numero++;
+        // Je prends chaque lemme de mon lexique
+        lem = beta2unicode(beta, false);
+        QString deb = format.arg(numero).arg(lem).arg(beta).arg(_trad[beta].section("\t",0,0));
+        QString fin = "\t";
+        QString fin2 = "\t" + _trad[beta].section("\t",1,2) + "\t";
+        // Je me prépare pour générer un fichier de travail avec les traductions existantes.
+        bool freq = false;
+        // le début et la fin de ma ligne.
+        if (beta[beta.size()-1].isDigit()) beta.chop(1);
+        else numbis++;
+        // numbis me servira pour répartir les lemmes
+        // et je voudrais qu'une même personne traite tous les homonymes.
+        if (beta.contains("-")) beta = reconcil(beta);
+        // Il faudrait réconcilier le radical et le préverbe.
+        nbre = 0;
+        if (nbOcc.contains(beta))
+        {
+            // Ce lemme a une chance d'avoir une fréquence ≥ 5
+            freq = true;
+            QStringList ls = nbOcc.values(beta);
+            if (ls.size() == 1 || !lem[lem.size()-1].isDigit())
+            {
+                fin.append(ls[0].section("\t",1,1));
+                fin2.append(ls[0].section("\t",1,1));
+            }
+            // C'est le cas simple où je n'ai qu'une solution ou
+            // que mon lemme n'a pas de numéro d'homonymie
+            else
+            {
+                // S'il y a plusieurs solutions, je regarde si je peux démêler les homonymes
+                int ii = 0;
+                while ((ii < ls.size()) && (lem[lem.size()-1] != ls[ii][ls[ii].size()-1]))
+                    ii++;
+                if (ii < ls.size())
+                {
+                    fin.append(ls[ii].section("\t",1,1));
+                    fin2.append(ls[ii].section("\t",1,1));
+                }
+                else
+                {
+                    fin.append(ls[0].section("\t",1,1));
+                    fin2.append(ls[0].section("\t",1,1));
+                }
+            }
+        }
+        else if (nbOcc_sd.contains(beta))
+        {
+            freq = true;
+            // Ce lemme a une chance d'avoir une fréquence ≥ 5
+            QStringList ls = nbOcc_sd.values(beta);
+            fin.append("#" + ls[0].section("\t",1,1));
+            fin2.append("#" + ls[0].section("\t",1,1));
+            // Je n'ai pas de solution exacte ! Mais je valide quand même.
+        }
+        else
+        {
+            fin.append("3"); // J'attribue une fréquence de 3 à tous les autres lemmes
+            fin2.append("3");
+        }
+        fin.append("\t");
+        fin2.append("\t");
+
+        if (sens.contains(beta))
+        {
+            // Combien ?
+            QStringList ls = sens.values(beta);
+            nbre += ls.size();
+            lesRes.append(ls);
+        }
+        if (renv.contains(beta))
+        {
+            // Combien ?
+            QStringList ls = renv.values(beta);
+            nbre += ls.size();
+            // Je dois suivre le renvoi et donner le sens trouvé.
+            for (int i = 0; i < ls.size(); i++)
+            {
+                QStringList eclats = ls[i].split("\t");
+                QString lr = uni2betacode(eclats[1].mid(2));
+                bool encore = true;
+                int iter = 0;
+                while (encore && (iter < 10))
+                { // Boucle pour les renvois à des renvois
+                    if (lr.contains(", ")) lr = lr.section(", ",0,0);
+                    if (lr.endsWith(".")) lr.chop(1);
+                    if (lr[0].isDigit()) lr = lr.mid(2);
+                    if (lr[lr.size() - 1].isDigit()) lr.chop(2);
+                    // Les renvois vers des homonymes sont de la forme > lemme 1
+                    if (eclats[1].startsWith("> *")) lr = lr.mid(1);
+                    if (lr.contains(" ")) lr = lr.section(" ",0,0);
+                    if (lr.endsWith(",")) lr.chop(1);
+                    if (sens.contains(lr))
+                    {
+                        encore = false;
+                        QStringList lss = sens.values(lr);
+                        for (int ii = 0; ii < lss.size(); ii++)
+                            if (!eclats[1][eclats[1].size()-1].isDigit() ||
+                                    (lss[ii].at(0) == eclats[1][eclats[1].size()-1])
+                                    || (lss.size() == 1))
+                            {
+                                lg = lss[ii].section("\t",0,2);
+                                lg.prepend(eclats[0] + " > ");
+                                lg.append("\t" + eclats[2]);
+                                lesRes.append(lg);
+                            }
+                    }
+                    else if (subst.contains(lr))
+                    {
+                        encore = false;
+                        QStringList lss = subst.values(lr);
+                        for (int ii = 0; ii < lss.size(); ii++)
+                        {
+                            lg = lss[ii].section("\t",0,2);
+                            lg.prepend(eclats[0] + " > ");
+                            lg.append("\t" + eclats[2]);
+                            lesRes.append(lg);
+                        }
+                    }
+                    else if (renv.contains(lr))
+                    {
+                        iter++;
+                        QStringList lss = renv.values(lr);
+                        if ((lss.size() == 1) && (iter < 10))
+                            lr = uni2betacode(lss[0].section("\t",1,1).mid(2));
+                        else
+                        {
+                            encore = false;
+                            lg = eclats[0] + " " + eclats[1] + "\t???? Renvoi sans Issue 1 ????\t0\t" + eclats[2];
+                            lesRes.append(lg);
+                            qDebug() << lg << lr << iter << lss;
+                        }
+                    }
+                    else
+                    {
+                        encore = false;
+                        lg = eclats[0] + " " + eclats[1] + "\t???? Renvoi sans Issue 2 ????\t0\t" + eclats[2];
+                        lesRes.append(lg);
+//                        qDebug() << lg << lr << iter << ls;
+                    }
+                } // Fin de la boucle pour les renvois à des renvois.
+            } // Fin de l'exploration des tous les renvois.
+        }
+        if (subst.contains(beta))
+        {
+            // Combien ?
+            QStringList ls = subst.values(beta);
+            nbre += ls.size();
+            lesRes.append(ls);
+        }
+        if (es_sens.contains(beta))
+        {
+            // Combien ?
+            QStringList ls = es_sens.values(beta);
+            nbre += ls.size();
+            for (int i = 0; i < ls.size(); i++)
+            {
+                QStringList eclats = ls[i].split("\t");
+                QString lr = uni2betacode(eclats[0]);
+                if (lr[lr.size()-1].isDigit()) lr.chop(1);
+                // J'avais mis le numéro à la fin
+                if (eclats[0].startsWith('*')) lr = lr.mid(1);
+                if (lr.contains(" ")) lr = lr.section(" ",0,0);
+                if (sens.contains(lr))
+                {
+                    QStringList lss = sens.values(lr);
+                    for (int ii = 0; ii < lss.size(); ii++)
+                        if (!eclats[0][eclats[0].size()-1].isDigit() ||
+                                (lss[ii].at(0) == eclats[0][eclats[0].size()-1]))
+                    {
+                        lg = lss[ii];
+                        lg.prepend(eclats[1] + " < ");
+                        // L'entrée secondaire était dans l'article.
+                        lesRes.append(lg);
+                    }
+                }
+                else
+                {
+                    lg = eclats[0] + " avec " + eclats[1] + "\t???? Article Perdu ????\t0\t";
+                    lesRes.append(lg);
+                }
+            }
+        }
+        if (es_renv.contains(beta))
+        {
+            // Combien ?
+            QStringList ls = es_renv.values(beta);
+            nbre += ls.size();
+            for (int i = 0; i < ls.size(); i++)
+            {
+                QStringList eclats = ls[i].split("\t");
+                QString lr = uni2betacode(eclats[3]);
+                if (eclats[3].startsWith('*')) lr = lr.mid(1);
+                if (lr.contains(", ") && (lr.count(", ") == eclats[1].count(", ") + 1))
+                {
+                    // il y a plusieurs renvois, lequel est le bon...
+//                    qDebug() << beta << lr << eclats[1];
+                    QStringList e = eclats[1].split(", ");
+                    int jj = 0;
+                    while ((jj < e.size()) && (beta != uni2betacode(e[jj]))) jj++;
+                    if (beta == uni2betacode(e[jj])) lr = lr.section(", ",jj + 1, jj + 1);
+//                    qDebug() << beta << lr << eclats[1] << jj << e.size();
+                }
+                // C'est une es d'un article avec renvoi :
+                // je vais directement au renvoi.
+                if (lr[lr.size()-1].isDigit()) lr.chop(1);
+                // J'avais mis le numéro à la fin
+                if (lr.contains(" ")) lr = lr.section(" ",0,0);
+                if (sens.contains(lr))
+                {
+                    QStringList lss = sens.values(lr);
+                    for (int ii = 0; ii < lss.size(); ii++)
+                        if (!eclats[3][eclats[3].size()-1].isDigit() ||
+                                (lss[ii].at(0) == eclats[3][eclats[3].size()-1]))
+                        {
+                            lg = lss[ii];
+                            lg.prepend(eclats[1] + " < " + eclats[0] + " > ");
+                            // L'entrée secondaire était dans l'article qui a renvoyé.
+                            lesRes.append(lg);
+                        }
+                }
+                else
+                {
+                    lg = eclats[0] + " avec " + eclats[1] + " > " + eclats[3] + "\t???? Article Perdu ????\t0\t";
+                    lesRes.append(lg);
+                }
+
+            }
+        }
+        if (nbre == 0)
+        {
+            nbre = 100;
+            beta = nettoie2(beta);
+            if (sens_sd.contains(beta))
+            {
+                // Combien ?
+                QStringList ls = sens_sd.values(beta);
+                nbre += ls.size();
+                lesRes.append(ls);
+            }
+            if (renv_sd.contains(beta))
+            {
+                // Combien ?
+                QStringList ls = renv_sd.values(beta);
+                nbre += ls.size();
+                // Je dois suivre le renvoi et donner le sens trouvé.
+                for (int i = 0; i < ls.size(); i++)
+                {
+                    QStringList eclats = ls[i].split("\t");
+                    QString lr = uni2betacode(eclats[1].mid(2));
+                    bool encore = true;
+                    int iter = 0;
+                    while (encore && (iter < 10))
+                    { // Boucle pour les renvois à des renvois
+                        if (lr.contains(", ")) lr = lr.section(", ",0,0);
+                        if (lr.endsWith(".")) lr.chop(1);
+                        if (lr[0].isDigit()) lr = lr.mid(2);
+                        if (lr[lr.size() - 1].isDigit()) lr.chop(2);
+                        // Les renvois vers des homonymes sont de la forme > lemme 1
+                        // Mais parfois le 1 est là pour dire "le point 1 de l'article)
+                        if (eclats[1].startsWith("> *")) lr = lr.mid(1);
+                        if (lr.contains(" ")) lr = lr.section(" ",0,0);
+                        if (lr.endsWith(",")) lr.chop(1);
+                        if (sens.contains(lr))
+                        {
+                            encore = false;
+                            QStringList lss = sens.values(lr);
+                            for (int ii = 0; ii < lss.size(); ii++)
+                                if (!eclats[1][eclats[1].size()-1].isDigit() ||
+                                        (lss[ii].at(0) == eclats[1][eclats[1].size()-1])
+                                        || (lss.size() == 1))
+                                {
+                                    lg = lss[ii].section("\t",0,2);
+                                    lg.prepend(eclats[0] + " > ");
+                                    lg.append("\t" + eclats[2]);
+                                    lesRes.append(lg);
+                                }
+                        }
+                        else if (subst.contains(lr))
+                        {
+                            encore = false;
+                            QStringList lss = subst.values(lr);
+                            for (int ii = 0; ii < lss.size(); ii++)
+                            {
+                                lg = lss[ii].section("\t",0,2);
+                                lg.prepend(eclats[0] + " > ");
+                                lg.append("\t" + eclats[2]);
+                                lesRes.append(lg);
+                            }
+                        }
+                        else if (renv.contains(lr))
+                        {
+                            iter++;
+                            QStringList lss = renv.values(lr);
+                            if ((lss.size() == 1) && (iter < 10))
+                                lr = uni2betacode(lss[0].section("\t",1,1).mid(2));
+                            else
+                            {
+                                encore = false;
+                                lg = eclats[0] + " " + eclats[1] + "\t???? Renvoi sans Issue 3 ????\t0\t" + eclats[2];
+                                lesRes.append(lg);
+                                qDebug() << lg << lr << iter << lss;
+                            }
+                        }
+                        else
+                        {
+                            encore = false;
+                            lg = eclats[0] + " " + eclats[1] + "\t???? Renvoi sans Issue 4 ????\t0\t" + eclats[2];
+                            lesRes.append(lg);
+//                            qDebug() << lg << lr << iter << ls;
+                        }
+                    } // Fin de la boucle pour les renvois à des renvois.
+                } // Fin de l'exploration des tous les renvois.
+            }
+            if (subst_sd.contains(beta))
+            {
+                // Combien ?
+                QStringList ls = subst_sd.values(beta);
+                nbre += ls.size();
+                lesRes.append(ls);
+            }
+            if (es_sens_sd.contains(beta))
+            {
+                // Combien ?
+                QStringList ls = es_sens_sd.values(beta);
+                nbre += ls.size();
+                for (int i = 0; i < ls.size(); i++)
+                {
+                    QStringList eclats = ls[i].split("\t");
+                    QString lr = uni2betacode(eclats[0]);
+                    if (lr[lr.size()-1].isDigit()) lr.chop(1);
+                    // J'avais mis le numéro à la fin
+                    if (eclats[0].startsWith('*')) lr = lr.mid(1);
+                    if (lr.contains(" ")) lr = lr.section(" ",0,0);
+                    if (sens.contains(lr))
+                    {
+                        QStringList lss = sens.values(lr);
+                        for (int ii = 0; ii < lss.size(); ii++)
+                            if (!eclats[0][eclats[0].size()-1].isDigit() ||
+                                    (lss[ii].at(0) == eclats[0][eclats[0].size()-1]))
+                        {
+                            lg = lss[ii];
+                            lg.prepend(eclats[1] + " < ");
+                            // L'entrée secondaire était dans l'article.
+                            lesRes.append(lg);
+                        }
+                    }
+                    else
+                    {
+                        lg = eclats[0] + " avec " + eclats[1] + "\t???? Article Perdu ????\t0\t";
+                        lesRes.append(lg);
+                    }
+                }
+            }
+            if (es_renv_sd.contains(beta))
+            {
+                // Combien ?
+                QStringList ls = es_renv_sd.values(beta);
+                nbre += ls.size();
+                for (int i = 0; i < ls.size(); i++)
+                {
+                    QStringList eclats = ls[i].split("\t");
+                    QString lr = uni2betacode(eclats[3]);
+                    if (eclats[3].startsWith('*')) lr = lr.mid(1);
+                    if (lr.contains(", ") && (lr.count(", ") == eclats[1].count(", ") + 1))
+                    {
+                        // il y a plusieurs renvois, lequel est le bon...
+                        QStringList e = eclats[1].split(", ");
+                        int jj = 0;
+                        while ((jj < e.size()) && (beta != nettoie(e[jj]))) jj++;
+                        if (beta == nettoie(e[jj])) lr = lr.section(", ",jj + 1, jj + 1);
+                    }
+                    // C'est une es d'un article avec renvoi :
+                    // je vais directement au renvoi.
+                    if (lr[lr.size()-1].isDigit()) lr.chop(1);
+                    // J'avais mis le numéro à la fin
+                    if (lr.contains(" ")) lr = lr.section(" ",0,0);
+                    if (sens.contains(lr))
+                    {
+                        QStringList lss = sens.values(lr);
+                        for (int ii = 0; ii < lss.size(); ii++)
+                            if (!eclats[3][eclats[3].size()-1].isDigit() ||
+                                    (lss[ii].at(0) == eclats[3][eclats[3].size()-1]))
+                        {
+                            lg = lss[ii];
+                            lg.prepend(eclats[1] + " < " + eclats[0] + " > ");
+                            // L'entrée secondaire était dans l'article qui a renvoyé.
+                            lesRes.append(lg);
+                        }
+                    }
+                    else
+                    {
+                        lg = eclats[0] + " avec " + eclats[1] + " > " + eclats[3] + "\t???? Article Perdu ????\t0\t";
+                        lesRes.append(lg);
+                    }
+                }
+            }
+        } // Fin de la deuxième chance.
+        if (lesRes.isEmpty())
+        {
+            flux << "! " << deb << "\t\t\t" << fin << nbre << "\n";
+            if (complexes.contains(uni2betacode(lem)))
+                sout3 << "! " << deb << "\t" << fin2 << (numbis & 1023) << "\t" << nettoie(lem) << "\n";
+            else if (freq && !deb.contains("-"))
+                sout << "! " << deb << "\t" << fin2 << (numbis & 1023) << "\n";
+            else sout2 << "! " << deb << "\t" << fin2 << (numbis & 1023) << "\n";
+            // Faut-il garder les lemmes qui ne figurent pas dans le Bailly ?
+            // Oui ! Car il faudra bien vérifier les traductions données.
+        }
+        else
+        {
+            // Y a-t-il plusieurs fois la même traduction ?
+            // Ça peut arriver quand il y a un renvoi et une entrée secondaire.
+            if (lesRes.size() > 1)
+            {
+                int i = 0;
+                while (i < lesRes.size() - 1)
+                {
+                        QString tri = lesRes[i].section("\t",1,1);
+                        int j = i + 1;
+                        while (j < lesRes.size())
+                        {
+                            if ((lesRes[j].section("\t",1,1) == tri) &&
+                                (lesRes[i].section("\t",0,0).contains(">") ||
+                                 lesRes[i].section("\t",0,0).contains("<") ||
+                                 lesRes[j].section("\t",0,0).contains(">") ||
+                                 lesRes[j].section("\t",0,0).contains("<")))
+                            {
+                                // Je ne supprime que si l'un des deux est un renvoi
+                                if (lesRes[i].section("\t",3,3).isEmpty())
+                                    lesRes[i].append(lesRes[j].section("\t",3,3));
+                                lesRes.removeAt(j); // Faire des vérifs supplémentaires ?
+                            }
+                            else j++;
+                        }
+                    i++;
+                }
+            }
+            if (nbre > 100) deb.prepend("? "); // Association douteuse
+            else if (lesRes.size() > 1) deb.prepend("* "); // Plusieurs prétendants.
+            for (int i = 0; i < lesRes.size(); i++)
+                flux << deb << lesRes[i] << fin << nbre << "\n";
+            if (freq || (lesRes.size() > 1) || (nbre > 100))
+            {
+                // Je voudrais faire vérifier les traductions
+                // des lemmes réputés fréquents,
+                // de ceux qui ont plusieurs prétendants
+                // ainsi que les associations douteuses.
+                QString lemmes = "";
+                QString trads = "\t";
+                for (int i = 0; i < lesRes.size(); i++)
+                {
+                    lemmes.append(lesRes[i].section("\t",0,0) + " [");
+                    lemmes.append(lesRes[i].section("\t",3,3) + "]@");
+                    trads.append(lesRes[i].section("\t",1,1) + "@");
+                }
+                lemmes.chop(1);
+                lemmes.remove(" []");
+                trads.chop(1);
+                if (complexes.contains(uni2betacode(lem)))
+                    sout3 << deb << lemmes << trads << fin2 << (numbis & 1023) << "\t" << nettoie(lem) << "\n";
+                else if (deb.contains("-"))
+                    sout2 << deb << lemmes << trads << fin2 << (numbis & 1023) << "\n";
+                // Les composés devraient être éliminés ???
+                else
+                    sout << deb << lemmes << trads << fin2 << (numbis & 1023) << "\n";
+            }
+            else if (complexes.contains(uni2betacode(lem)))
+            {
+                if (lesRes[0].section("\t",3,3).isEmpty())
+                                sout3 << deb << lesRes[0].section("\t",0,0) << "\t"
+                                       << lesRes[0].section("\t",1,1)
+                                       << fin2 << (numbis & 1023) << "\t" << nettoie(lem) << "\n";
+                            else sout3 << deb << lesRes[0].section("\t",0,0) << " ["
+                                       << lesRes[0].section("\t",3,3) << "]\t"
+                                       << lesRes[0].section("\t",1,1)
+                                       << fin2 << (numbis & 1023) << "\t" << nettoie(lem) << "\n";
+            }
+            else if (lesRes[0].section("\t",3,3).isEmpty())
+                sout2 << deb << lesRes[0].section("\t",0,0) << "\t"
+                       << lesRes[0].section("\t",1,1)
+                       << fin2 << (numbis & 1023) << "\n";
+            else sout2 << deb << lesRes[0].section("\t",0,0) << " ["
+                       << lesRes[0].section("\t",3,3) << "]\t"
+                       << lesRes[0].section("\t",1,1)
+                       << fin2 << (numbis & 1023) << "\n";
+        }
+    }
+    fichier.close();
+    fout.close();
+    fout2.close();
+    fout3.close();
+    // Je vais rouvrir le fichier des cas complexes pour séparer les groupes
+    // en fonction de la fréquence de l'élément le plus fréquent.
+    pseudos.clear();
+    QMap<QString, int> nbPs; // Pour retenir le plus grand nombre d'occurrences.
+    fout.setFileName("/Users/Philippe/Documents/Chantiers_Eulexis/complex1.csv");
+    fout.open(QFile::WriteOnly | QFile::Text);
+    fout2.setFileName("/Users/Philippe/Documents/Chantiers_Eulexis/complex2.csv");
+    fout2.open(QFile::WriteOnly | QFile::Text);
+    fout3.open(QFile::ReadOnly | QFile::Text);
+    while (!sout3.atEnd()) {
+        beta = sout3.readLine();
+        lem = beta.section("\t",-1,-1);
+        pseudos.insert(lem, beta);
+        if (nbPs.contains(lem))
+        {
+            if (nbPs[lem] < beta.section("\t",8,8).toInt())
+                nbPs[lem] = beta.section("\t",8,8).toInt();
+        }
+        else nbPs[lem] = beta.section("\t",8,8).toInt();
+    }
+    foreach (lem, nbPs.keys()) {
+        complexes = pseudos.values(lem);
+        for (int i = 0; i < complexes.size(); i++)
+            if (nbPs[lem] < 40) sout2 << complexes[i] << "\n";
+            else sout << complexes[i] << "\n";
+    }
+    fout.close();
+    fout2.close();
+    fout3.close();
+}
+#else
 {
     QFile fichier (_rscrDir + "index_com.inc");
     fichier.open(QFile::WriteOnly | QFile::Text);
@@ -1783,8 +2838,8 @@ void Lemmat::indexCommun()
     // Les deux fichiers index_com.inc et .csv étant créés en même temps,
     // On saura facilement qui va avec quoi.
 
-    fichier.setFileName("/Users/Philippe/Documents/Bailly_2020/uniques.txt");
-    fichier.open(QFile::WriteOnly | QFile::Text);
+//    fichier.setFileName("/Users/Philippe/Documents/Bailly_2020/uniques.txt");
+//    fichier.open(QFile::WriteOnly | QFile::Text);
     // Lors de la construction de l'index commun, je peux regarder si une forme du Bailly existe dans les autres dicos.
 
     QStringList tout = _LSJindex.keys();
@@ -1819,7 +2874,7 @@ void Lemmat::indexCommun()
                 if (b == valPape[j].section(":",2,2))
                     OK = true;
             b = valBailly[i].section(":",2,2);
-            if (!OK) fichier.write(b.append("\n").toUtf8());
+//            if (!OK) fichier.write(b.append("\n").toUtf8());
         }
         int nMax = valLJS.size();
         if (valPape.size() > nMax) nMax = valPape.size();
@@ -1845,7 +2900,7 @@ void Lemmat::indexCommun()
             comIndex.insert(clef_gr.toUtf8(),ligne);
         }
     }
-    fichier.close();
+//    fichier.close();
 
     fichier.setFileName(_rscrDir + "index_com.csv");
     fichier.open(QFile::WriteOnly | QFile::Text);
@@ -1860,7 +2915,25 @@ void Lemmat::indexCommun()
 
     fichier.close();
 }
+#endif
 
+/**
+ * @brief verifie l'ordre des balises dans l'article
+ * @param ligne : un paragraphe du fichier dictionnaire
+ *
+ * Lorsque je mets à jour un dictionnaire, je vérifie que chaque @a ligne
+ * (c'est à dire chaque article du dictionnaire) est correctement
+ * formé du point de vue de l'ouverture et de la fermeture des balises HTML.
+ * Il y a un problème si on rencontre une balise fermante sans
+ * que la balise ouvrante associée soit la dernière vue
+ * (les paires ouvrantes-fermantes imbriquées sont éliminées au fur et à mesure)
+ * ou qu'il reste des balises ouvertes à la fin de l'article.
+ *
+ * @todo Actuellement, j'utilise qDebug() qui affiche, dans Qt Creator,
+ * les problèmes rencontrés. Il faudrait changer ça, pour que ces erreurs
+ * soient affichées dans une fenêtre de dialogue qui permette aussi
+ * de les sauver dans un fichier.
+ */
 void Lemmat::verif(QString ligne)
 {
     // Je vérifie que l'ordre des balises est bon
@@ -1909,16 +2982,30 @@ void Lemmat::verif(QString ligne)
 
 }
 
+/**
+ * @brief change la langue-cible
+ * @param lang : un entier (0 = Anglais ; 1 = Français ; 2 = Allemand)
+ */
 void Lemmat::setCible(int lang)
 {
     _cible = lang;
 }
 
+/**
+ * @brief accesseur de Lemmat::_cible
+ * @return un entier (0 = Anglais ; 1 = Français ; 2 = Allemand)
+ */
 int Lemmat::cible()
 {
     return _cible;
 }
 
+/**
+ * @brief lecture des analyses dans le fichier "analyses_gr.txt"
+ *
+ * Comme le chargement prend du temps,
+ * j'affiche une fenêtre avec une barre de progression.
+ */
 void Lemmat::lireAnalyses()
 {
     _formes.clear();
@@ -2076,6 +3163,12 @@ void Lemmat::lireAnalyses()
     fListe.close();*/
 }
 
+/**
+ * @brief lecture des traductions dans le fichier "trad_gr_en_fr_de.csv"
+ *
+ * Comme le chargement prend du temps,
+ * j'affiche une fenêtre avec une barre de progression.
+ */
 void Lemmat::lireTraductions()
 {
     _trad.clear();
@@ -2110,16 +3203,86 @@ void Lemmat::lireTraductions()
     fListe.close();
 }
 
+/**
+ * @brief donne la traduction du lemme dans la langue-cible
+ * @param lem : le lemme
+ * @return la traduction du lemme @a lem
+ *
+ * Si la traduction n'existe pas dans la langue demandée,
+ * j'essaie l'anglais, puis le français (si ce n'est pas déjà fait).
+ *
+ * Le lem que je passe ici est celui trouvé dans le fichier d'analyses :
+ * il peut contenir un "-" ou/et une "," que je dois éliminer.
+ * Si l'indication contient un "-",
+ * on trouve le lemme à sa droite
+ * et le (ou les) préverbe(s) à sa gauche,
+ * éventuellement séparés par des virgules.
+ * Mais il y a aussi des cas où la forme avec détails est donnée !
+ * 19 préverbes avec 97 141 occurrences
+ * 14 125 formes avec 22 401 occurrences
+ */
 QString Lemmat::traduction(QString lem)
 {
-    return _trad[lem].section("\t",_cible,_cible);
+    // Le lem que je passe ici est celui trouvé dans le fichier :
+    // il peut contenir un "-" ou/et une "," que je dois éliminer.
+    if (lem.contains("-"))
+    {
+        // Si l'indication contient un "-",
+        // on trouve le lemme à sa droite
+        // et le (ou les) préverbe(s) à sa gauche,
+        // éventuellement séparés par des virgules.
+        // Mais il y a aussi des cas où la forme avec détails est donnée !
+        // 19 préverbes avec 97 141 occurrences
+        // 14 125 formes avec 22 401 occurrences
+        if (lem.contains(",") &&
+                ((lem.section(",",0,0).size() > 6) || (lem.section(",",0,0) == "kassw=")))
+        {
+            // kassw= est le seule forme de six caractères ou moins
+            // qui ne soit pas un préfixe.
+            lem = lem.section(",",1); // lem est en betacode.
+        }
+        lem = lem.section("-",1); // lem est maintenant l'élément à traduire
+    }
+    else if (lem.contains(","))
+    {
+        // Si les infos contiennent une virgule mais pas de tiret,
+        // il n'y a qu'une virgule qui sépare les détails de la forme et le lemme.
+        lem = lem.section(",",1);
+    }
+
+    QString res = "";
+    if (_trad.contains(lem))
+    {
+        res = _trad[lem].section("\t",_cible,_cible);
+        if (res.isEmpty())
+        {
+            // La traduction demandée n'existe pas :
+            // j'essaie une traduction anglaise, puis française.
+            if (_cible != 0) res = "[En] " + _trad[lem].section("\t",0,0);
+            // Si _cible était égale à 0, inutile de chercher une traduction au même endroit.
+            if ((res == "[En] ") && (_cible != 1)) res = "[Fr] " + _trad[lem].section("\t",1,1);
+            // Pour l'instant, je n'ai pas de traduction en Allemand sans traduction anglaise.
+        }
+    }
+    return res;
 }
 
+/**
+ * @brief accesseur de Lemmat::_toInit
+ * @return un booléen @c true si les données n'ont pas encore été lues.
+ */
 bool Lemmat::toInit()
 {
     return _toInit;
 }
 
+/**
+ * @brief lit les fichiers d'analyse et de traduction
+ *
+ * Cette fonction a été reportée au moment où une lemmatisation est demandée.
+ * Elle prend du temps et ne doit se faire qu'une seule fois.
+ * Elle bascule donc le booléen Lemmat::_toInit à @c false.
+ */
 void Lemmat::initData()
 {
     lireAnalyses();
@@ -2127,13 +3290,291 @@ void Lemmat::initData()
     _toInit = false;
 }
 
+/**
+ * @brief cherche une traduction
+ * @param bla : une chaine qui peut donner un indice
+ * @return Une traduction si j'en ai trouvé une.
+ *
+ * @deprecated Je l'ai utilisée pour corriger les listes de traductions, mais ne sert plus.
+ */
+QString Lemmat::chTrad(QString bla)
+{
+    QString res = "";
+    QString b = bla.section(" ",0,0).simplified();
+    if (b.endsWith(",")) b.chop(1);
+    if (b.endsWith(".")) b.chop(1);
+    QString clef = uni2betacode(b);
+    if (clef == b) return res; // pas du grec !
+//                                qDebug() << bla << clef;
+    if (!bla.section(" ",1,1).isEmpty() && bla.section(" ",1,1).at(0).isDigit())
+    {
+        clef.append(bla.section(" ",1,1).at(0));
+        if (_trad.contains(clef))
+        {
+            b.append(bla.section(" ",1,1).at(0));
+            res = b + "\t" + _trad[clef];
+            return res;
+        }
+        else clef.chop(1);
+    }
+    if (_trad.contains(clef))
+        res = b + "\t" + _trad[clef];
+    else if (_trad.contains(clef+"1"))
+        res = b + "1\t" + _trad[clef+"1"];
+    else if (_trad.contains(clef+"2"))
+        res = b + "2\t" + _trad[clef+"2"];
+    else res = b + " ?\t\t\t"; // J'ai un mot grec, mais je ne l'ai pas trouvé.
+    return res;
+}
+
+/**
+ * @brief réparation des traductions non-trouvées ou qui peuvent sembler incomplètes
+ * @param nom : nom d'un fichier contenant des traductions se terminant avec un mot outil
+ *
+ * @deprecated Je l'ai utilisée pour corriger les listes de traductions, mais ne sert plus.
+ */
 void Lemmat::repairTransl(QString nom)
 {
+    if (nom.isEmpty())
+    {
+        // Pour chercher toutes les entrées du LSJ, qui n'ont pas donné de traduction
+        QFile fListe("/Users/Philippe/Documents/Chantiers_Eulexis/LSJ.csv");
+        if (!fListe.open(QFile::WriteOnly | QFile::Text))
+            qDebug() << "Echec";
+        QTextStream fluxL(&fListe);
+        fluxL.setCodec("UTF-8");
+        fluxL << "\n";
+//        if (_toInit) initData();
+        qDebug() << "Ok";
+        QString beta;
+        QString tr;
+        QString ligne;
+        QString clef;
+        QStringList LSJ;
+        QStringList lost;
+        int aa = 0;
+        int bb = 0;
+        QString nvlTrad;
+        foreach (beta, _trad.keys())
+        {
+            tr = _trad[beta];
+            if (tr.startsWith("\t"))
+            {
+                // Je n'ai pas de traduction anglaise
+                nvlTrad = "";
+                QString c = beta;
+                if (c[c.size() - 1].isDigit()) c.chop(1);
+                c.remove("-");
+                LSJ = consLSJ(nettoie2(c));
+                if (LSJ.size() > 3)
+                {
+                    // Les trois premières lignes sont les liens et les mots avant et après.
+                    aa++;
+                    bool found = false;
+                    for(int i = 3; i < LSJ.size(); i++)
+                    {
+                        ligne = LSJ[i];
+                        QString bla = ligne.section("</b>",0,0);
+                        bla = bla.mid(bla.indexOf("<b>")+3); // Le lemme.
+                        bool bon = (c == uni2betacode(bla)); // Condition stricte
+                        bon = bon || ligne.contains(beta2unicode(beta,false)); // Si la clef est une variante.
+                        if (c.lastIndexOf("(") > 2) c.remove(c.lastIndexOf("("), 1);
+                        if (c.lastIndexOf(")") > 2) c.remove(c.lastIndexOf(")"), 1);
+                        if (c.count("/") == 2) c.remove(c.indexOf("/"), 1);
+                        bon = bon || (c == uni2betacode(bla));
+                        bla = uni2betacode(bla);
+                        bla.remove("+"); // Les trémas peuvent avoir échappé.
+                        bon = bon || (c == bla);
+                        if (bon)
+                        {
+                            bb++;
+                            // C'est le bon lemme, peut-être.
+                            found = true;
+                            // Dans le cas où la traduction est vide,
+                            // je prends le premier morceau en gras
+                            bla = ligne.section("</span>",1).replace("&nbsp;"," ").simplified();
+                            // Tout ce qui vient après le lemme
+                            if (bla.contains("im. of"))
+                            {
+                                clef = bla.section("im. of",1).simplified();
+                                if (clef.startsWith("</i>")) clef = clef.mid(4);
+                                if (clef.startsWith(" ")) clef = clef.mid(1);
+                                if (!clef.section(" ",1,1).isEmpty() && clef.section(" ",1,1).at(0).isDigit())
+                                {
+                                    QString d = clef.section(" ",1,1).mid(0,1);
+                                    clef = clef.section(" ",0,0);
+                                    if (clef.endsWith(",")) clef.chop(1);
+                                    if (clef.endsWith(".")) clef.chop(1);
+                                    clef.append(" " + d);
+                                }
+                                else clef = clef.section(" ",0,0);
+                                if (clef.endsWith(",")) clef.chop(1);
+                                if (clef.endsWith(".")) clef.chop(1);
+                                if (clef != uni2betacode(clef))
+                                {
+                                    QString nt = "\t\t";
+                                    if (_trad.contains(uni2betacode(clef)))
+                                        nt = _trad[uni2betacode(clef)];
+                                    QStringList ec = nt.split("\t");
+                                    nvlTrad = "—\tDim. of " + clef;
+                                    if (!ec[0].isEmpty() && (ec[0].size() < 20))
+                                        nvlTrad.append(" (" + ec[0] + ")");
+                                    nvlTrad.append("\tdim. de " + clef);
+                                    if (!ec[1].isEmpty() && (ec[1].size() < 20))
+                                        nvlTrad.append(" (" + ec[1] + ")");
+                                    nvlTrad.append("\tdim. zu " + clef);
+                                    if (!ec[2].isEmpty() && (ec[2].size() < 20))
+                                        nvlTrad.append(" (" + ec[2] + ")");
+                                }
+                                else qDebug() << beta2unicode(beta,false) << beta << bla;
+                                if (!nvlTrad.isEmpty())
+                                {
+                                    fluxL << beta2unicode(beta,false) << "\t" << beta << "\t";
+                                    if (tr == "\t\t") // ni Français, ni Allemand
+                                        fluxL << nvlTrad << "\n";
+                                    else if (tr.endsWith("\t"))
+                                    {
+                                        // J'avais une traduction en Français.
+                                        fluxL << nvlTrad.section("\t",0,1) << "\t"
+                                              << tr.section("\t",1,1) << "\t"
+                                              << nvlTrad.section("\t",3,3) << "\n";
+                                    }
+                                    else fluxL << nvlTrad.section("\t",0,1) << tr << "\n";
+                                }
+                            }
+                            if (bla.contains("fem. of"))
+                            {
+                                clef = bla.section("fem. of",1).simplified();
+                                if (clef.startsWith("</i>")) clef = clef.mid(4);
+                                if (clef.startsWith(" ")) clef = clef.mid(1);
+                                if (!clef.section(" ",1,1).isEmpty() && clef.section(" ",1,1).at(0).isDigit())
+                                {
+                                    QString d = clef.section(" ",1,1).mid(0,1);
+                                    clef = clef.section(" ",0,0);
+                                    if (clef.endsWith(",")) clef.chop(1);
+                                    if (clef.endsWith(".")) clef.chop(1);
+                                    clef.append(" " + d);
+                                }
+                                else clef = clef.section(" ",0,0);
+                                if (clef.endsWith(",")) clef.chop(1);
+                                if (clef.endsWith(".")) clef.chop(1);
+                                if (clef != uni2betacode(clef))
+                                {
+                                    QString nt = chTrad(bla.section("fem. of ",1).simplified());
+                                    if (nt.isEmpty()) nt = "\t\t\t";
+                                    QStringList ec = nt.split("\t");
+                                    nvlTrad = "—\tfem. of " + clef;
+                                    if (!ec[1].isEmpty() && (ec[1].size() < 20))
+                                        nvlTrad.append(" (" + ec[1] + ")");
+                                    nvlTrad.append("\tfém. de " + clef);
+                                    if (!ec[2].isEmpty() && (ec[2].size() < 20))
+                                        nvlTrad.append(" (" + ec[2] + ")");
+                                    nvlTrad.append("\tfem. zu " + clef);
+                                    if (!ec[3].isEmpty() && (ec[3].size() < 20))
+                                        nvlTrad.append(" (" + ec[3] + ")");
+                                }
+                                else qDebug() << beta2unicode(beta,false) << beta << bla;
+                                if (!nvlTrad.isEmpty())
+                                {
+                                    fluxL << beta2unicode(beta,false) << "\t" << beta << "\t";
+                                    if (tr == "\t\t")
+                                        fluxL << nvlTrad << "\n";
+                                    else if (tr.endsWith("\t"))
+                                    {
+                                        // J'avais une traduction en Français.
+                                        fluxL << nvlTrad.section("\t",0,1) << "\t"
+                                              << tr.section("\t",1,1) << "\t"
+                                              << nvlTrad.section("\t",3,3) << "\n";
+                                    }
+                                    else fluxL << nvlTrad.section("\t",0,1) << tr << "\n";
+                                }
+                            }
+                            if (bla.contains("= ") && nvlTrad.isEmpty())
+                            {
+                                nvlTrad = chTrad(bla.section("= ",1));
+                                if (!nvlTrad.isEmpty())
+                                {
+                                    fluxL << beta2unicode(beta,false) << "\t" << beta << "\t";
+                                    if (tr == "\t\t")
+                                        fluxL << nvlTrad << "\n";
+                                    else if (tr.endsWith("\t"))
+                                    {
+                                        // J'avais une traduction en Français.
+                                        fluxL << nvlTrad.section("\t",0,1) << "\t"
+                                              << tr.section("\t",1,1) << "\t"
+                                              << nvlTrad.section("\t",3,3) << "\n";
+                                    }
+                                    else fluxL << nvlTrad.section("\t",0,1) << tr << "\n";
+                                }
+                            }
+                            if (bla.contains("i> for ") && nvlTrad.isEmpty())
+                            {
+                                nvlTrad = chTrad(bla.section("i> for ",1));
+                                if (!nvlTrad.isEmpty())
+                                {
+                                    fluxL << beta2unicode(beta,false) << "\t" << beta << "\t> ";
+                                    if (tr == "\t\t")
+                                        fluxL << nvlTrad << "\n";
+                                    else if (tr.endsWith("\t"))
+                                    {
+                                        // J'avais une traduction en Français.
+                                        fluxL << nvlTrad.section("\t",0,1) << "\t"
+                                              << tr.section("\t",1,1) << "\t"
+                                              << nvlTrad.section("\t",3,3) << "\n";
+                                    }
+                                    else fluxL << nvlTrad.section("\t",0,1) << tr << "\n";
+                                }
+                            }
+                            if (bla.contains("v. sub ") && nvlTrad.isEmpty())
+                            {
+                                nvlTrad = chTrad(bla.section("v. sub ",1));
+                                if (!nvlTrad.isEmpty())
+                                {
+                                    fluxL << beta2unicode(beta,false) << "\t" << beta << "\tv. ";
+                                    if (tr == "\t\t")
+                                        fluxL << nvlTrad << "\n";
+                                    else if (tr.endsWith("\t"))
+                                    {
+                                        // J'avais une traduction en Français.
+                                        fluxL << nvlTrad.section("\t",0,1) << "\t"
+                                              << tr.section("\t",1,1) << "\t"
+                                              << nvlTrad.section("\t",3,3) << "\n";
+                                    }
+                                    else fluxL << nvlTrad.section("\t",0,1) << tr << "\n";
+                                }
+                            }
+                            // Fin du morceau pour traductions vides.
+                        }
+                    }
+                    if (!found)
+                        lost.append(beta2unicode(beta,false) + "\t" + beta + "\tPas exact dans le LSJ");
+                    // Pas trouvé ! Je ne fais rien.
+                    else if (nvlTrad.isEmpty())
+                        lost.append(beta2unicode(beta,false) + "\t" + beta +"\tPas de renvoi");
+                    else
+                        lost.append(beta2unicode(beta,false) + "\t" + beta +"\t" + nvlTrad.section("\t",0,0));
+                    // Je pense avoir trouvé l'article, mais rien en gras
+                }
+                else lost.append(beta2unicode(beta,false) + "\t" + beta + "\tAbsent du LSJ");
+                // Pas trouvé ! Je ne fais rien.
+            }
+        }
+        fListe.close();
+qDebug() << aa << bb << lost.size();
+        fListe.setFileName("/Users/Philippe/Documents/Chantiers_Eulexis/LSJ0.csv");
+        fListe.open(QFile::WriteOnly | QFile::Text);
+        for (int i = 0; i < lost.size() ; i++)
+        {
+            fluxL << lost[i] << "\n";
+        }
+        fListe.close();
+        return;
+    }
     // Cette routine est faite pour réparer les traductions qui se terminent avec un mot outil.
     // ou dans un premier temps qui se limitent à "of".
-    QFile fListe (nom);
-    fListe.open (QIODevice::ReadOnly|QIODevice::Text);
-    QTextStream fluxL (&fListe);
+    QFile fListe(nom);
+    fListe.open(QIODevice::ReadOnly|QIODevice::Text);
+    QTextStream fluxL(&fListe);
     fluxL.setCodec("UTF-8");
     QString ligne;
     QString clef;
@@ -2272,7 +3713,7 @@ void Lemmat::repairTransl(QString nom)
     nom.chop(3);
     nom.append("csv");
     fListe.setFileName(nom);
-    fListe.open (QIODevice::WriteOnly|QIODevice::Text);
+    fListe.open (QFile::WriteOnly | QFile::Text);
     foreach (ligne, repare.keys())
     {
         fluxL << beta2unicode(ligne) << "\t" << ligne << "\t"

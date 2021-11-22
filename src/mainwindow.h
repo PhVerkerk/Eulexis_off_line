@@ -8,11 +8,29 @@
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QProgressDialog>
+#include <QDateTime>
 
 #include "lemmatiseur.h"
 
+/**
+ * \file mainwindow.h
+ * \brief Header du MainWindow, GUI d'Eulexis, et d'EditLatin
+ * \author Philippe Verkerk
+ * \version 1.2
+ * \date 2021
+ */
+
 class MainWindow;
 
+/**
+ * @brief La classe EditLatin est dérivée de
+ * QTextEdit afin de pouvoir redéfinir l'action
+ * connectée au survol d'un mot par la souris
+ * et au clic de souris sur un mot ou après
+ * sélection d'une portion de texte.
+ *
+ * Copiée directement de Collatinus
+ */
 class EditLatin : public QTextEdit
 {
     Q_OBJECT
@@ -28,6 +46,15 @@ class EditLatin : public QTextEdit
     bool event(QEvent *event);
 };
 
+/**
+ * @brief La classe MainWindow crée l'interface graphique d'Eulexis
+ *
+ * Beaucoup de variables ne sont pas commentées ici, car elles correspondent
+ * à des boutons ou des items de menu ou aux actions qui leur sont associés.
+ * Les noms essaient d'être explicites.
+ *
+ * Fortement inspirée de Collatinus
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -45,7 +72,7 @@ private:
     QLabel * _blabla;
     void createW();
     void readSettings();
-    QString _rscrDir;
+    QString _rscrDir; /*!< Chemin complet pour le répertoire des ressources */
     QString latin2greek(QString f);
     QTextBrowser *_txtEdit;
     QTextBrowser *_lemEdit;
@@ -146,14 +173,50 @@ private:
     QDialog * dVerif;
     QLabel * dLemme;
     QLabel * dBeta;
-    QLabel * dOld;
-    QLineEdit * dLine;
-    QFile dFichier;
-    QFile dListe;
+    QLabel * dLemAv;
+    QLabel * dNum;
+    QLabel * dLemAp;
+    QLabel * dTrAv;
+    QLabel * dTrAp;
+    QLabel * dNb;
+//    QLabel * dOld;
+    QLineEdit * dTrEn;
+    QLineEdit * dTrFr;
+    QLineEdit * dTrDe;
+    QTextEdit * dTrB;
+//    QLineEdit * dTrB;
+    QLineEdit * dComment;
+    QComboBox *dLemB;
+//    QFile dFichier;
+//    QFile dListe;
+    QString dNomFic;
     QTextStream dFlux;
     void dSetUp();
-    void dNext();
+    void dAffiche(QString ligne);
+    bool dValide();
     QAction * actVerif;
+    int opCode;
+    int indice;
+    int nbLem;
+    int numLem;
+    QRadioButton *choixEulexis; // Déclaré ici pour pouvoir lire l'état.
+    QRadioButton *choixBailly;
+    QRadioButton *choixRemis;
+    QPushButton *nextButton; // Déclaré ici pour changer le texte.
+    QPushButton *previousButton;
+//    QPushButton *undoButton;
+//    QPushButton *saveButton;
+    QStringList lg_Old;
+    QStringList lgOrig;
+    QStringList lgMod;
+    QStringList elements;
+    QStringList lemBailly;
+    QStringList trBailly;
+    QString css_vert = "background-color: #A0FFA0; selection-background-color: #009000;";
+    QString css_orange = "background-color: #FFC040; selection-background-color: #B06000;";
+    QString css_rouge = "background-color: #FF5040; selection-background-color: #A00020;";
+    QString css_gris = "background-color: #808080; selection-background-color: #808080;";
+    QString css_blanc = "background-color: #FFFFFF; selection-background-color: #000080;";
 
 private slots:
     void exportPdf();
@@ -201,9 +264,13 @@ private slots:
     void toolsRestore ();
 
     // Famille de slots pour le dialogue de vérification.
-    void dSkip(); // ne tient pas compte des changements, rend la main
-    void dValid(); // Valide les changements.
-    void dSave(); // Comme valid mais en fermant et réouvrant le fichier
+//    void dSkip(); // ne tient pas compte des changements, rend la main
+//    void dValid(); // Valide les changements.
+    void dNext();
+    void dPrev();
+    void dSave(); // Pour sauver l'ensemble des données sans changer de lemme.
+    void dUndo(); // Pour annuler les modifs
+    void dChgLem(int i); // Mettre à jour la traduction quand on change de lemme.
     void verifT(); // Je définis une nouvelle action, d'où un slot.
 
 public slots:

@@ -6,25 +6,47 @@
 #include <QtWidgets>
 #include <QRegExp>
 
-class MainWindow : public QMainWindow
+/**
+ * \file Conv_mainwindow.h
+ * \brief Header du CMainWindow, GUI de Greek_converter
+ * \author Philippe Verkerk
+ * \version 1
+ * \date 2018
+ *
+ * Greek_converter est un petit programme qui permet
+ * de convertir du betacode en unicode et réciproquement.
+ */
+
+/**
+ * @brief La classe CMainWindow est la GUI de Greek_converter
+ *
+ * Cette classe définit la fenêtre d'interface de Greek_converter.
+ * Greek_converter est un petit programme qui permet
+ * de convertir du betacode en unicode et réciproquement.
+ * Il travaille de fichier à fichier :
+ * * @c txt, tout le texte est converti.
+ * * @c csv, le séparateur peut être la virgule ou la tabulation
+ * et une fenêtre de dialogue permet de sélectionner les colonnes à convertir.
+ */
+class CMainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    CMainWindow(QWidget *parent = 0);
+    ~CMainWindow();
 
 private:
-    QString _rscrDir;
-    QTextBrowser *_txtEdit;
-    QPushButton *_b2u;
-    QPushButton *_u2b;
-    QPushButton *_norm;
-    QToolButton *_betaButton;
-    QToolButton *_capsButton;
-    QToolButton *_autoName;
-    QString _texte;
-    bool _isCSV;
+    QString _rscrDir; /*!< Le chemin complet du répertoire de ressources*/
+    QTextBrowser *_txtEdit; /*!< La fenêtre principale (historique)*/
+    QPushButton *_b2u; /*!< Bouton pour convertir le betacode en unicode*/
+    QPushButton *_u2b; /*!< Bouton pour convertir l'unicode en betacode*/
+    QPushButton *_norm; /*!< Bouton pour normaliser l'unicode*/
+    QToolButton *_betaButton; /*!< Bouton pour distinguer les deux bêtas*/
+    QToolButton *_capsButton; /*!< Bouton pour mettre le betacode en majuscule*/
+    QToolButton *_autoName; /*!< Bouton pour générer automatiquement le nom du fichier créé*/
+    QString _texte; /*!< Le texte*/
+    bool _isCSV; /*!< Booléen pour dire que le fichier est un CSV*/
 
     QAction *quitAct;
     QAction *actionB2U;
@@ -44,16 +66,16 @@ private:
 
     void createW();
     void connecter();
-    void ouvrir();
+    bool ouvrir();
     void sauver(QString nomFichier = "");
     QString beta2unicode(QString f,bool beta = true);
     QString uni2betacode(QString f);
 
-    QStringList _beta;
-    QStringList _uni;
+    QStringList _beta; /*!< Liste des caractères grecs en betacode pour la conversion en unicode*/
+    QStringList _uni; /*!< Liste des caractères grecs en unicode pour la conversion en betacode*/
 
-    QString repertoire;
-    QString nom;
+    QString _repertoire; /*!< Nom du répertoire de travail*/
+    QString _nom; /*!< Nom du fichier de travail*/
 
     // Pour le dialogue à propos des fichiers CSV
     QDialog * dialCSV;
@@ -64,7 +86,7 @@ private:
     QLineEdit * range;
     QRadioButton * rbTab;
     QRadioButton * rbComma;
-    bool _annule;
+    bool _annule; /*!< Booléen pour dire que la sélection CSV est annulée */
 
     QList<int> listEntiers(QString le);
 

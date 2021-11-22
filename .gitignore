@@ -1,5 +1,6 @@
 archives
 bin
+*.zip
 *.app
 .*
 moc

@@ -1,9 +1,28 @@
 #include "Conv_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
+/**
+ * \file Conv_mainwindow.cpp
+ * \brief CMainWindow = GUI de Greek_converter
+ * \author Philippe Verkerk
+ * \version 1
+ * \date 2018
+ *
+ * Greek_converter est un petit programme qui permet
+ * de convertir du betacode en unicode et réciproquement.
+ */
+
+/**
+ * @brief créateur de la classe CMainWindow
+ * @param parent : le parent
+ *
+ * Cette classe définit la fenêtre d'interface de Greek_converter.
+ * Greek_converter est un petit programme qui permet
+ * de convertir du betacode en unicode et réciproquement.
+ */
+CMainWindow::CMainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    repertoire = QDir::homePath();
+    _repertoire = QDir::homePath();
     createW();
     connecter();
 
@@ -27,28 +46,32 @@ MainWindow::MainWindow(QWidget *parent)
     fListe.close();
 }
 
-MainWindow::~MainWindow()
+/**
+ * @brief destructeur de la classe CMainWindow
+ */
+CMainWindow::~CMainWindow()
 {
 
 }
 
 /**
- * \fn void MainWindow::closeEvent(QCloseEvent *event)
- * \brief Vérifie que le travail est sauvé
- *        avant la fermeture de l'application.
+ * \fn void CMainWindow::closeEvent(QCloseEvent *event)
+ * \brief ferme l'application.
  */
-void MainWindow::closeEvent(QCloseEvent *event)
+void CMainWindow::closeEvent(QCloseEvent *event)
 {
         event->accept();
 }
 
 /**
- * @brief MainWindow::createW
+ * @brief crée la fenêtre principale
  *
- * Prépare la fenêtre principale.
+ * Prépare la fenêtre principale qui est ouverte
+ * ainsi qu'une fenêtre de dialogue pour le cas des fichiers CSV
+ * qui ne sera affichée que plus tard, quand ce sera nécessaire.
  *
  */
-void MainWindow::createW()
+void CMainWindow::createW()
 {
     resize(768, 532);
     setUnifiedTitleAndToolBarOnMac(true);
@@ -182,7 +205,10 @@ void MainWindow::createW()
 
 }
 
-void MainWindow::connecter()
+/**
+ * @brief Connecte les @c actions aux @c slots
+ */
+void CMainWindow::connecter()
 {
 
     connect(actionB2U, SIGNAL(triggered()), this, SLOT(bet2uni()));
@@ -197,12 +223,10 @@ void MainWindow::connecter()
 }
 
 /**
- * @brief MainWindow::aPropos
- *
- * Affiche une fenêtre de dialogue avec les remerciements.
+ * @brief Affiche une fenêtre de dialogue avec les remerciements.
  *
  */
-void MainWindow::aPropos()
+void CMainWindow::aPropos()
 {
     QMessageBox::about(
         this, tr("Eulexis"),
@@ -221,10 +245,20 @@ void MainWindow::aPropos()
 
 }
 
-void MainWindow::ouvrir()
+/**
+ * @brief Ouvre un fichier texte ou csv
+ * @return un booléen true si le fichier est chargé
+ *
+ * Cette routine ouvre une boîte de dialogue pour lire
+ * un fichier @c txt ou @c csv.
+ * Si l'opération a été annulée ou que le fichier n'a pas pu être lu,
+ * cette fonction retourne le booléen @c false.
+ * Si tout c'est bien passé, le booléen @c true est renvoyé.
+ */
+bool CMainWindow::ouvrir()
 {
     QString nomFichier =
-            QFileDialog::getOpenFileName(this, "Open file",repertoire,"Text files (*.txt;*.csv)");
+            QFileDialog::getOpenFileName(this, "Open file",_repertoire,"Text files (*.txt;*.csv)");
     if (!nomFichier.isEmpty())
     {
         _texte.clear();
@@ -234,21 +268,32 @@ void MainWindow::ouvrir()
             _txtEdit->append("Loading file : "+nomFichier+"\n");
             _texte = QString::fromUtf8(fEntree.readAll());
             QFileInfo fi(nomFichier);
-            repertoire = fi.absolutePath ();
-            nom = fi.baseName();
+            _repertoire = fi.absolutePath ();
+            _nom = fi.baseName();
             _isCSV = (fi.suffix() == "csv");
+            return true;
         }
     }
+    return false;
 }
 
-void MainWindow::sauver(QString nomFichier)
+/**
+ * @brief Sauve le texte converti
+ * @param nomFichier : le nom du fichier à créer
+ *
+ * Si le bouton CMainWindow::_autoName est activé,
+ * le nom du fichier à créer est généré à partir du nom du fichier ouvert.
+ * Si le @a nomFichier est vide, cette routine ouvre une fenêtre de dialogue
+ * pour choisir le nom du fichier à créer.
+ */
+void CMainWindow::sauver(QString nomFichier)
 {
     if (nomFichier.isEmpty()) nomFichier =
-        QFileDialog::getSaveFileName(this, "Save file as :", repertoire, "*.txt;*csv");
+        QFileDialog::getSaveFileName(this, "Save file as :", _repertoire, "*.txt;*.csv");
     if (!nomFichier.isEmpty())
     {
         QFileInfo fi(nomFichier);
-        repertoire = fi.absolutePath ();
+        _repertoire = fi.absolutePath ();
         if (fi.suffix().isEmpty())
         {
             if (_isCSV) nomFichier.append(".csv");
@@ -264,7 +309,13 @@ void MainWindow::sauver(QString nomFichier)
     }
 }
 
-QString MainWindow::beta2unicode(QString f, bool beta)
+/**
+ * @brief Convertit du betacode en unicode
+ * @param f : une chaine de caractères en betacode
+ * @param beta : un booléen pour distinguer les deux bêtas
+ * @return la chaine convertie en unicode
+ */
+QString CMainWindow::beta2unicode(QString f, bool beta)
 {
     // Transf le betacode en unicode
         // Le sigma final
@@ -285,7 +336,17 @@ QString MainWindow::beta2unicode(QString f, bool beta)
     return f.mid(1,f.size()-2);
 }
 
-QString MainWindow::uni2betacode(QString f)
+/**
+ * @brief Convertit de l'unicode en betacode
+ * @param f : une chaine de caractères en unicode
+ * @return la chaine convertie en betacode
+ *
+ * La norme betacode prévoit que les lettres employées sont en majuscule.
+ * Certains (dont je suis) ont trouvé ça peu lisible et ont tout basculé en minuscule.
+ * Le bouton CMainWindow::_capsButton permet de respecter la forme initiale en majuscule.
+ * Par défaut, il est désactivé.
+ */
+QString CMainWindow::uni2betacode(QString f)
 {
     // Transf l'unicode en betacode
     for (int i=0; i<_beta.size();i++)
@@ -294,11 +355,20 @@ QString MainWindow::uni2betacode(QString f)
     return f;
 }
 
-void MainWindow::bet2uni()
+/**
+ * @brief Ouvre un fichier, le convertit de betacode en unicode et le sauve
+ *
+ * Si le fichier ouvert est un CSV, une fenêtre de dialogue supplémentaire s'ouvre
+ * pour choisir le séparateur (virgule ou tabulation) et les colonnes à convertir.
+ * Dans cette fenêtre, on a deux boutons "Annuler" et "OK" :
+ * * "Annuler" annule toute l'opération et le fichier n'est pas converti
+ * * "OK" valide les choix faits (voir aussi CMainWindow::listEntiers).
+ */
+void CMainWindow::bet2uni()
 {
     // Ouvrir, transformer et sauver.
 
-    ouvrir();
+    if (!ouvrir()) return;
     _annule = false;
     if (_isCSV) dialCSV->exec();
     if (_annule) return;
@@ -328,15 +398,24 @@ void MainWindow::bet2uni()
         _texte = lignes.join("\n");
     }
     if (_autoName->isChecked())
-        sauver(repertoire + "/" + nom + "_conv");
+        sauver(_repertoire + "/" + _nom + "_conv");
     else sauver();
     _txtEdit->append("Done !\n");
 }
 
-void MainWindow::uni2bet()
+/**
+ * @brief Ouvre un fichier, le convertit d'unicode en betacode et le sauve
+ *
+ * Si le fichier ouvert est un CSV, une fenêtre de dialogue supplémentaire s'ouvre
+ * pour choisir le séparateur (virgule ou tabulation) et les colonnes à convertir.
+ * Dans cette fenêtre, on a deux boutons "Annuler" et "OK" :
+ * * "Annuler" annule toute l'opération et le fichier n'est pas converti
+ * * "OK" valide les choix faits (voir aussi CMainWindow::listEntiers).
+ */
+void CMainWindow::uni2bet()
 {
     // Ouvrir, transformer et sauver.
-    ouvrir();
+    if (!ouvrir()) return;
     _annule = false;
     if (_isCSV) dialCSV->exec();
     if (_annule) return;
@@ -366,14 +445,17 @@ void MainWindow::uni2bet()
         _texte = lignes.join("\n");
     }
     if (_autoName->isChecked())
-        sauver(repertoire + "/" + nom + "_conv");
+        sauver(_repertoire + "/" + _nom + "_conv");
     else sauver();
     _txtEdit->append("Done !\n");
 }
 
-void MainWindow::normalise()
+/**
+ * @brief Ouvre un fichier, en normalise l'unicode et le sauve
+ */
+void CMainWindow::normalise()
 {
-    ouvrir();
+    if (!ouvrir()) return;
     if (!_isCSV || (_texte.size() < 300000))
     {
         _txtEdit->append("Normalisation of Unicode.\n");
@@ -391,24 +473,52 @@ void MainWindow::normalise()
         _texte = lignes.join("\n");
     }
     if (_autoName->isChecked())
-        sauver(repertoire + "/" + nom + "_conv");
+        sauver(_repertoire + "/" + _nom + "_conv");
     else sauver();
     _txtEdit->append("Done !\n");
 }
 
-void MainWindow::fermeDial()
+/**
+ * @brief ferme et valide la fenêtre de dialogue CSV
+ */
+void CMainWindow::fermeDial()
 {
     _annule = false;
     dialCSV->close();
 }
 
-void MainWindow::annuleDial()
+/**
+ * @brief annule et ferme le dialogue CSV
+ */
+void CMainWindow::annuleDial()
 {
     _annule = true;
     dialCSV->close();
 }
 
-QList<int> MainWindow::listEntiers(QString le)
+/**
+ * @brief Explicite la liste d'entiers
+ * @param le : une chaine représentant une liste d'entiers
+ * @return la liste d'entiers
+ *
+ * La boîte de dialogue pour la conversion de fichiers CSV
+ * permet de choisir les colonnes à convertir.
+ * Comme souvent, on peut donner des numéros séparés par des virgules
+ * ou spécifier des plages de valeurs avec un tiret.
+ *
+ * Exemples :
+ * * "2,4" va convertir le contenu de la 2e colonne et celui de la 4e.
+ * * "2-4" va convertir le contenu des colonnes 2, 3 et 4.
+ * * On peut combiner les deux notations comme "1,3-5"
+ * qui va convertir le contenu des colonnes 1, 3, 4 et 5.
+ *
+ * @attention La première colonne s'appelle bien 1.
+ * @attention Une plage de valeurs donne les limites (incluses)
+ * dans l'ordre naturel : "min-max" avec **min < max**.
+ * @attention L'ordre est en revanche indifférent pour les valeurs séparées
+ * par des virgules : "4,2" fera exactement la même chose que "2,4".
+ */
+QList<int> CMainWindow::listEntiers(QString le)
 {
     QList<int> li;
     QStringList eclats = le.split(",");
