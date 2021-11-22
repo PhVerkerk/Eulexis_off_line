@@ -1,6 +1,7 @@
 archives
 bin
 *.zip
+*_old.csv
 *.app
 .*
 moc
