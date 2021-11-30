@@ -115,3 +115,11 @@ the translation to other languages, presently
 French and German. Please note that these translations
 have been obtained with Google Trad and need now to be
 corrected.
+
+## Documentation
+The help pages of Eulexis are also available on the
+[web site of Biblissima](https://outils.biblissima.fr/fr/eulexis/aide/).
+
+The technical documentation collected with [Doxygen](https://www.doxygen.nl/index.html)
+can be found on the [web site of Biblissima](https://outils.biblissima.fr/fr/eulexis/doc/).
+Of course, any developper can collect it also from the sources.
