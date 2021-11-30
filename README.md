@@ -122,4 +122,4 @@ The help pages of Eulexis are also available on the
 
 The technical documentation collected with [Doxygen](https://www.doxygen.nl/index.html)
 can be found on the [web site of Biblissima](https://outils.biblissima.fr/fr/eulexis/doc/).
-Of course, any developper can collect it also from the sources.
+Of course, any developer can collect it also from the sources.
