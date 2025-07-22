@@ -18,29 +18,72 @@ suivant : <a href="lemmatiser.html">Fenêtre de lemmatisation</a></p>
 
 <h1>Fenêtre de consultation</h1>
 
-<p>Eulexis se présente comme beaucoup de programmes avec une fenêtre principale. Ici, elle sert à consulter les dictionnaires. La barre d'outils regroupe les actions que l'on peut effectuer. Lorsqu'on arrête le curseur sur un bouton de la barre d'outils, une bulle d'aide donne quelques indications sur la fonction du bouton.</p>
+<p>Eulexis se présente comme beaucoup de programmes avec une fenêtre principale. 
+  Ici, elle sert à consulter les dictionnaires. 
+  La barre d'outils regroupe les actions que l'on peut effectuer. 
+  Lorsqu'on arrête le curseur sur un bouton de la barre d'outils, 
+  une bulle d'aide donne quelques indications sur la fonction du bouton.</p>
 
 <p><img src="Principale.png" alt="Fenêtre principale" /></p>
 
 <h2>Saisie</h2>
 
-<p>La ligne de saisie (le cadre blanc à gauche, qui contient ici <em>hmera</em>) permet d'écrire le mot qui nous intéresse. On peut le saisir en caractères grecs ou en caractères latins. Dans cette fenêtre, la validation (par la touche « Entrée ») de la saisie déclenche la consultation des dictionnaires. Au cours de la frappe, le mot apparaît en caractères grecs <em>ημερα</em> dans le bouton qui est situé immédiatement à droite du cadre de saisie. Cela permet, en particulier, de vérifier qu'on utilise la bonne lettre pour représenter le caractère grec qu'on veut obtenir. Ce bouton sert aussi à lemmatiser le mot (<a href="lemmatiser.html">voir la page suivante</a>).</p>
+<p>La ligne de saisie (le cadre blanc à gauche, qui contient ici <em>hmera</em>) permet 
+  d'écrire le mot qui nous intéresse. On peut le saisir en caractères grecs ou en caractères latins. 
+  Dans cette fenêtre, la validation (par la touche « Entrée ») de la saisie déclenche 
+  la consultation des dictionnaires. 
+  Au cours de la frappe, le mot apparaît en caractères grecs <em>ημερα</em> dans le 
+  bouton qui est situé immédiatement à droite du cadre de saisie. 
+  Cela permet, en particulier, de vérifier qu'on utilise la bonne lettre pour 
+  représenter le caractère grec qu'on veut obtenir. 
+  Ce bouton sert aussi à lemmatiser le mot (<a href="lemmatiser.html">voir la page suivante</a>).</p>
 
 <h3>Caractères de substitution</h3>
-<p>Lorsqu'on ne connaît pas le mot exact que l'on cherche, on peut utiliser des caractères de substitution. Eulexis en connaît deux : l'astérisque <strong>*</strong> et le point d'interrogation <strong>?</strong> pour représenter n'importe quels caractères. La différence entre les deux est que le <strong>?</strong> remplace un caractère et un seul, alors que l'<strong>*</strong> remplace un nombre arbitraire de caractères (éventuellement nul). Ces caractères de substitution ne fonctionnent que lors d'une saisie en caractères latins. Le temps nécessaire pour faire la recherche et afficher le résultat peut être augmenté. Nous avons mis quelques limitations à l'utilisation de ces caractères.
-<ul><li>Le mot doit contenir au moins deux “vrais” caractères. En d'autres termes, la lecture de tout le dictionnaire comme réponse à la recherche de “*” n'est pas possible.</li>
-<li>Le nombre d'articles affichés restera inférieur à vingt. Si la recherche ne donne pas l'article voulu, on imposera quelques caractères supplémentaires. En raison de l'algorithme choisi, ce sont les <em>vingt derniers</em> articles dans <em>l'ordre alphabétique du bétacode</em> qui sont affichés. Cela dit, pour une recherche raisonnablement ciblée, cette limitation n'en est pas une.</li>
+<p>Lorsqu'on ne connaît pas le mot exact que l'on cherche, 
+  on peut utiliser des caractères de substitution. 
+  Eulexis en connaît deux : 
+  l'astérisque <strong>*</strong> et le point d'interrogation <strong>?</strong> 
+  pour représenter n'importe quels caractères. 
+  La différence entre les deux est que le <strong>?</strong> remplace un caractère et un seul, 
+  alors que l'<strong>*</strong> remplace un nombre arbitraire de caractères (éventuellement nul). 
+  Ces caractères de substitution ne fonctionnent que lors d'une saisie en caractères latins. 
+  Le temps nécessaire pour faire la recherche et afficher le résultat peut être augmenté. 
+  Nous avons mis quelques limitations à l'utilisation de ces caractères.
+<ul><li>Le mot doit contenir au moins deux “vrais” caractères. 
+  En d'autres termes, la lecture de tout le dictionnaire comme réponse à la 
+  recherche de “*” n'est pas possible.</li>
+<li>Le nombre d'articles affichés restera inférieur à vingt. 
+  Si la recherche ne donne pas l'article voulu, on imposera quelques caractères supplémentaires. 
+  En raison de l'algorithme choisi, ce sont les <em>vingt derniers</em> articles 
+  dans <em>l'ordre alphabétique du bétacode</em> qui sont affichés. 
+  Cela dit, pour une recherche raisonnablement ciblée, cette limitation n'en est pas une.</li>
 <li>On peut placer un ou <em>au maximum</em> deux caractères de substitution dans une recherche.</li>
 <li>Les combinaisons “**”, "?*” ou “*?” sont remplacées par “*”.</li>
 </ul>
-<strong>Généralisation</strong> : on peut introduire un chiffre (de 1 à 9) <b>avant</b> le caractère de substitution. Avec le <strong>?</strong>, le chiffre indique le nombre <em>exact</em> de caractères qui doivent être trouvés dans le mot. Ainsi, “2?” (qui serait équivalent à “??”) remplace deux caractères quelconques, mais ni un ni trois. Avec l'<strong>*</strong>, le chiffre indique le nombre <em>maximum</em> de caractères qui doivent être trouvés dans le mot. Ainsi, “2*” remplace zéro, un ou deux caractères quelconques, mais pas trois ou plus. <em>Remarque</em> : une combinaison comme “?2*” n'est, pour l'instant, pas prise en compte. Pourtant, elle permettrait de cibler le remplacement de 1 à 3 caractères en excluant l'absence de caractères. <em>Remarque 2</em> :bien que formellement équivalentes, les recherches “b?b??” et “b?b2?” ne conduiront pas au même résultat : seule la deuxième forme aboutira.</p>
+<strong>Généralisation</strong> : 
+  on peut introduire un chiffre (de 1 à 9) <b>avant</b> le caractère de substitution. 
+  Avec le <strong>?</strong>, le chiffre indique le nombre <em>exact</em> de caractères 
+  qui doivent être trouvés dans le mot. 
+  Ainsi, “2?” (qui serait équivalent à “??”) remplace deux caractères quelconques, mais ni un ni trois. 
+  Avec l'<strong>*</strong>, le chiffre indique le nombre <em>maximum</em> de caractères 
+  qui doivent être trouvés dans le mot. Ainsi, “2*” remplace zéro, un ou deux caractères quelconques,
+  mais pas trois ou plus. 
+  <em>Remarque</em> : une combinaison comme “?2*” n'est, pour l'instant, pas prise en compte. 
+  Pourtant, elle permettrait de cibler le remplacement de 1 à 3 caractères en excluant 
+  l'absence de caractères.
+  <em>Remarque 2</em> : 
+  bien que formellement équivalentes, les recherches “b?b??” et “b?b2?” ne conduiront pas 
+  au même résultat : seule la deuxième forme aboutira.</p>
 
 <p><b>Exemples</b> en se limitant aux résultats dans le LSJ<ul>
 <li>*abac : ἄβαξ ἀρράβαξ βάβαξ κάβαξ</li>
-<li>?abac : βάβαξ κάβαξ <em style="color:blue">dans ces deux premiers exemples, noter la différence entre <b>*</b> et <b>?</b></em></li>
+<li>?abac : βάβαξ κάβαξ <em style="color:blue">dans ces deux premiers exemples, 
+  noter la différence entre <b>*</b> et <b>?</b></em></li>
 <li>1*abac : ἄβαξ βάβαξ κάβαξ <em style="color:blue">noter la différence entre <b>1*</b> et <b>?</b></em></li>
 <li>3*basis : ἄμβασις ἀνάβασις ἀπόβασις βάσις βέβασις βίβασις διάβασις εἴσβασις ἔκβασις ἔμβασις ἐπίβασις πρόβασις σέβασις στίβασις σύμβασις ὑπόβασις</li>
-<li>3?basis : ἀνάβασις ἀπόβασις διάβασις εἴσβασις ἐπίβασις πρόβασις στίβασις σύμβασις ὑπόβασις <em style="color:blue">noter la différence entre <b>3*</b> et <b>3?</b>, ce dernier met en évidence uniquement les préfixes de 3 lettres (ἀνά-, ἀπό-, διά-, εἴσ-...)</em></li>
+<li>3?basis : ἀνάβασις ἀπόβασις διάβασις εἴσβασις ἐπίβασις πρόβασις στίβασις σύμβασις ὑπόβασις 
+  <em style="color:blue">noter la différence entre <b>3*</b> et <b>3?</b>, ce dernier met en évidence uniquement 
+    les préfixes de 3 lettres (ἀνά-, ἀπό-, διά-, εἴσ-...)</em></li>
 <li>t*ainw : ταργαίνω τερσαίνω τετραίνω τετραμαίνω τετρεμαίνω τιταίνω τιτραίνω τρομαίνω</li>
 <li>de?a : Δεῖα δεία δέκα δέμα δέρα δέψα</li>
 <li>dema* : δέμα δέμας δεμάτιον Δέματρος</li>
@@ -52,9 +95,33 @@ suivant : <a href="lemmatiser.html">Fenêtre de lemmatisation</a></p>
 
 <h3>Expressions rationnelles</h3>
 
-<p>Les expressions rationnelles (dites souvent <em>expressions régulières</em> par traduction fautive de l'anglais <em>regular expression</em>) sont une façon commode de formaliser une recherche. Elles permettent en particulier de proposer un choix entre deux caractères ou plus (par exemple, “[sn]” représente un caractère parmi les deux proposés donc soit “s”, soit “n” ; ce qui peut permettre de trouver un substantif dont on ignore s'il est masculin ou neutre). On dispose donc d'un outil plus sélectif que le <strong>?</strong> introduit précédemment. Les expressions rationnelles permettent aussi d'exclure certains caractères de la recherche. Ainsi, “[^sn]” signifie un caractère autre que ceux entre crochets (ici, s et n). Supposons que l'on soit intéressé par les composés de νομος avec quatre caractères avant : on cherchera donc .{4}nomos. Toutefois, on s'aperçoit vite que cette recherche butte sur la limite des vingt articles. On la partagera en deux recherches : [a-i].{3}nomos (qui donnera 14 résultats dans le LSJ) et [^(a-i)].{3}nomos (qui en donnera 16). <em>Remarque</em> : on aurait aussi pu utiliser [k-z].{3}nomos. Une fois de plus, on remarquera que l'ordre alphabétique des caractères grecs n'est pas respecté : en particulier, γ (=g), θ (=q) et ζ (=z) ne sont pas à leur place.</p>
+<p>Les expressions rationnelles (dites souvent <em>expressions régulières</em> par traduction fautive de l'anglais 
+  <em>regular expression</em>) sont une façon commode de formaliser une recherche. 
+  Elles permettent en particulier de proposer un choix entre deux caractères ou plus 
+  (par exemple, “[sn]” représente un caractère parmi les deux proposés donc soit “s”, soit “n” ; 
+  ce qui peut permettre de trouver un substantif dont on ignore s'il est masculin ou neutre). 
+  On dispose donc d'un outil plus sélectif que le <strong>?</strong> introduit précédemment. 
+  Les expressions rationnelles permettent aussi d'exclure certains caractères de la recherche. 
+  Ainsi, “[^sn]” signifie un caractère autre que ceux entre crochets (ici, s et n). 
+  Supposons que l'on soit intéressé par les composés de νομος avec quatre caractères avant : on cherchera donc .{4}nomos. 
+  Toutefois, on s'aperçoit vite que cette recherche butte sur la limite des vingt articles. 
+  On la partagera en deux recherches : [a-i].{3}nomos (qui donnera 14 résultats dans le LSJ) et [^(a-i)].{3}nomos 
+  (qui en donnera 16). <em>Remarque</em> : on aurait aussi pu utiliser [k-z].{3}nomos. 
+  Une fois de plus, on remarquera que l'ordre alphabétique des caractères grecs n'est pas respecté : 
+  en particulier, γ (=g), θ (=q) et ζ (=z) ne sont pas à leur place.</p>
  
-<p>Je ne suis absolument pas spécialiste des expressions rationnelles et on trouvera <a href="https://cheatography.com/davechild/cheat-sheets/regular-expressions/">ici, une fiche synthétique,</a> et <a href="https://fr.wikipedia.org/wiki/Expression_r%C3%A9guli%C3%A8re">ailleurs, quelques pistes</a>. Notons que l'emploi de l'* ou du ? a, dans les expressions rationnelles, une signification différente de celle comme caractères de substitution. Tout le traitement repose sur la bibliothèque Qt utilisée et je ne puis garantir le résultat d'une recherche. Le programme distingue une requête de type <em>expression rationnelle</em> par la présence de l'un des caractères suivants : “.” (n'importe quel caractère), “[” (associé à “]” pour offrir un choix entre plusieurs caractères), “(” (qui capture la sous-expression contenue dans les parenthèses ; le groupe capturer peut être repris par “\1”, voir un exemple ci-dessous), “{” (pour donner un nombre de répétitions) et “|” (le “ou” entre plusieurs expressions). <em>Remarque</em> : chacune des parenthèses ouvrantes doit être associée à sa parenthèse fermante pour former une expression rationnelle valide (le programme rejette toute requête invalide).</p>
+<p>Je ne suis absolument pas spécialiste des expressions rationnelles et 
+  on trouvera <a href="https://cheatography.com/davechild/cheat-sheets/regular-expressions/">ici, une fiche synthétique,</a> 
+  et <a href="https://fr.wikipedia.org/wiki/Expression_r%C3%A9guli%C3%A8re">ailleurs, quelques pistes</a>. 
+  Notons que l'emploi de l'* ou du ? a, dans les expressions rationnelles, une signification différente de celle 
+  comme caractères de substitution. Tout le traitement repose sur la bibliothèque Qt utilisée et je ne puis garantir 
+  le résultat d'une recherche. Le programme distingue une requête de type <em>expression rationnelle</em> par la présence 
+  de l'un des caractères suivants : “.” (n'importe quel caractère), “[” (associé à “]” pour offrir un choix entre 
+  plusieurs caractères), “(” (qui capture la sous-expression contenue dans les parenthèses ; 
+  le groupe capturé peut être repris par “\1”, voir un exemple ci-dessous), 
+  “{” (pour donner un nombre de répétitions) et “|” (le “ou” entre plusieurs expressions). 
+  <em>Remarque</em> : chacune des parenthèses ouvrantes doit être associée à sa parenthèse fermante pour former 
+  une expression rationnelle valide (le programme rejette toute requête invalide).</p>
 
 <p><b>Exemples</b> en se limitant aux résultats dans le LSJ<ul>
 <li>ba[bl].. : βάβαξ βαβαί βαβήρ βαλήν βαλία βαλίς βάλλω βαλός</li>
@@ -69,13 +136,29 @@ suivant : <a href="lemmatiser.html">Fenêtre de lemmatisation</a></p>
 
 <h2>Navigation</h2>
 
-<p>On a tout à gauche les deux boutons de navigation habituels. La flèche vers la gauche permet d'afficher les pages qui ont été consultées précédemment. Quand on est remonté dans l'historique, la flèche vers la droite devient active et permet de revenir jusqu'à la dernière page consultée. Les flèches sont inactives quand on a atteint l'extrémité correspondante de l'historique. Comme pour tous les navigateurs, quand on est remonté dans le passé et qu'on fait une nouvelle requête, une partie de l'historique d'origine est perdue.</p>
+<p>On a tout à gauche les deux boutons de navigation habituels. 
+  La flèche vers la gauche permet d'afficher les pages qui ont été consultées précédemment. 
+  Quand on est remonté dans l'historique, la flèche vers la droite devient active et permet de revenir jusqu'à la 
+  dernière page consultée. Les flèches sont inactives quand on a atteint l'extrémité correspondante de l'historique. 
+  Comme pour tous les navigateurs, quand on est remonté dans le passé et qu'on fait une nouvelle requête, 
+  une partie de l'historique d'origine est perdue.</p>
 
-<p>Le groupe de trois boutons au centre est spécifique de la consultation des dictionnaires. Le bouton représentant un livre ouvert permet d'ouvrir les dictionnaires. Il est donc équivalent à la validation de la ligne de saisie. Les deux boutons qui suivent servent à « feuilleter » les dictionnaires en donnant le mot qui précède et celui qui suit le dernier article consulté (ici <em>ἤμεναι</em> et <em>ἡμεραυγής</em>). Le choix des <strong>dictionnaires affichés</strong> se fait dans le menu “Dicos”. Dans le résultat de la consultation, on retrouve plusieurs fois une <em>ligne de liens</em> qui permet de naviguer dans la page en allant directement à l'article du Bailly, par exemple, ou de consulter l'article qui précède ou suit dans chaque dictionnaire. Dans l'exemple ci-dessus, les trois dictionnaires ne proposent pas les mêmes mots (mais ce n'est pas toujours le cas).</p>
+<p>Le groupe de trois boutons au centre est spécifique de la consultation des dictionnaires. 
+  Le bouton représentant un livre ouvert permet d'ouvrir les dictionnaires. 
+  Il est donc équivalent à la validation de la ligne de saisie. 
+  Les deux boutons qui suivent servent à « feuilleter » les dictionnaires en donnant le mot qui précède et 
+  celui qui suit le dernier article consulté (ici <em>ἤμεναι</em> et <em>ἡμεραυγής</em>). 
+  Le choix des <strong>dictionnaires affichés</strong> se fait dans le menu “Dicos”. 
+  Dans le résultat de la consultation, on retrouve plusieurs fois une <em>ligne de liens</em> qui permet de naviguer 
+  dans la page en allant directement à l'article du Bailly, par exemple, ou de consulter l'article qui précède ou suit 
+  dans chaque dictionnaire. Dans l'exemple ci-dessus, les trois dictionnaires ne proposent pas les mêmes mots 
+  (mais ce n'est pas toujours le cas).</p>
 
 <p><img src="barre_dic.png" alt="Outils Fen Principale" /></p>
 
-<p>Les quatre boutons de droite servent à afficher les fenêtres supplémentaires, respectivement pour <a href="texte.html">le texte</a> et <a href="lemmatiser.html">la lemmatisation</a>, à ouvrir les pages d'aides dans le navigateur et à quitter le programme.</p>
+<p>Les quatre boutons de droite servent à afficher les fenêtres supplémentaires, 
+  respectivement pour <a href="texte.html">le texte</a> et <a href="lemmatiser.html">la lemmatisation</a>, 
+  à ouvrir les pages d'aide dans le navigateur et à quitter le programme.</p>
 
 <p>précédent : <a href="anatomie.html">présentation</a>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
